@@ -1,0 +1,5341 @@
+{
+	"info": {
+		"_postman_id": "db67027c-da7e-4181-a2f3-c92f878fe9c3",
+		"name": "CloudShare v3 Production API",
+		"description": "See [https://docs.cloudshare.com/rest-api/v3/overview/](https://docs.cloudshare.com/rest-api/v3/overview/)\n\nThe \"CloudShare Production\" environment provides all the variable used within the requests and the scripts. Two variables MUST be updated:\n\n- API_ID\n- API_KEY\n    \n\nAdd the value that matches the user who will complete the API requests. Code in the collection's pre-request script takes care of authentication (as detailed here [https://docs.cloudshare.com/rest-api/v3/overview/using-the-rest-api/#highlighter_940164)](https://docs.cloudshare.com/rest-api/v3/overview/using-the-rest-api/#highlighter_940164). Otherwise, you then update the other variables as the need arises.\n\nEach request outlined in the documentation has it own request in the collection. Further, there is an additional folder named \"**Useful collections and API tweaks**\", which contains some chained request examples to perform sequences of calls to perform typical tasks, These were designed so that you run the entire folder, which you can't do with public permissions. However, you might be able to export the collection/environment and import it into a personal/team workspace (I don't think you have permission to \"fork\" the collection/environment). it's a bit yuk, but I think its the best we can do for now.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9066100",
+		"_collection_link": "https://www.postman.com/galactic-star-539207/workspace/cloudshare-v3-api-public/collection/25333509-db67027c-da7e-4181-a2f3-c92f878fe9c3?action=share&source=collection_link&creator=9066100"
+	},
+	"item": [
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Blueprints",
+					"item": [
+						{
+							"name": "Get BluePrint",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let test1Passed, test2Passed;\r",
+											"let responses = pm.environment.get('responses');\r",
+											"const responseJson = pm.response.json();\r",
+											"const blueprintIds = responseJson.map(blueprint => blueprint.id);\r",
+											"var count = Object.keys(responseJson).length;\r",
+											"\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    try {\r",
+											"        pm.response.to.have.status(200);\r",
+											"        test1Passed = true;\r",
+											"    } catch (err) {\r",
+											"        test1Passed = false;\r",
+											"    }\r",
+											"});\r",
+											"\r",
+											"pm.test(\"The blueprints in the project are greater than zero\", function () {\r",
+											"    try {\r",
+											"        pm.expect(count).to.be.greaterThan(0);\r",
+											"        // pm.expect(data.length).to.equal(3);\r",
+											"        console.log(\"The number of blueprints in the project are = \" + count);\r",
+											"        // console.log(\"Responses = \" + JSON.stringify(responseJson));\r",
+											"        test2Passed = true;\r",
+											"    } catch (err) {\r",
+											"        test2Passed = false;\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											"\r",
+											"if (test1Passed && test2Passed) {\r",
+											"    console.log(blueprintIds);\r",
+											"    pm.variables.set('blueprintIds', blueprintIds);\r",
+											"}\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects/{{projectId}}/blueprints",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects",
+										"{{projectId}}",
+										"blueprints"
+									],
+									"query": [
+										{
+											"key": "regionId",
+											"value": "{{regionId}}",
+											"description": "Optional. The ID of a region. Returns all blueprints that have default snapshots on the specified region.\n\nIf unspecified, returns all blueprints in the project on all regions.\n\nTo retrieve region IDs, use GET /api/v3/regions.",
+											"disabled": true
+										},
+										{
+											"key": "defaultSnapshot",
+											"value": "{{defaultSnapshot}}",
+											"description": "Optional. Boolean. If set to true – get the default snapshot for every blueprint. The returned JSON will contain a property ‘CreateFromVersions’, which is an array of one element – the default snapshot.\nIf unspecified, default is false (don’t return the default snapshot).",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/project/blueprints/get-api-v3-projects-id-blueprints/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get BluePrint Details",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects/{{projectId}}/blueprints/{{blueprintId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects",
+										"{{projectId}}",
+										"blueprints",
+										"{{blueprintId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/project/blueprints/get-api-v3-projects-id-blueprints-id/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/project/blueprints/]()"
+				},
+				{
+					"name": "Policies",
+					"item": [
+						{
+							"name": "Get Policies",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects/{{projectId}}/policies",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects",
+										"{{projectId}}",
+										"policies"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/project/policies/get-api-v3-projects-id-policies/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "[https://docs.cloudshare.com/rest-api/v3/project/policies/]()"
+				},
+				{
+					"name": "Projects",
+					"item": [
+						{
+							"name": "Get Projects (including filters)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects"
+									],
+									"query": [
+										{
+											"key": "WhereUserIsProjectManager",
+											"value": "true",
+											"description": "Returns only projects in which the user is a project manager.",
+											"disabled": true
+										},
+										{
+											"key": "WhereUserIsProjectMember",
+											"value": "true",
+											"description": "Returns only projects in which the user is a project member.",
+											"disabled": true
+										},
+										{
+											"key": "WhereUserCanCreateClass",
+											"value": "true",
+											"description": "Returns only projects in which the user is allowed to create a class. The minimum user level allowed to create classes is set per project and can be changed by project manager users.",
+											"disabled": true
+										},
+										{
+											"key": "subscriptionIdFilter",
+											"value": "{{subscriptionId}}",
+											"description": "Return projects within a specific CloudShare subscription.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/project/projects/get-api-v3-projects/]() and [https://docs.cloudshare.com/rest-api/v3/project/projects/get-api-v3-projects-filter/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Project Details",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects/{{projectId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects",
+										"{{projectId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/project/projects/get-api-v3-projects-id/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/project/projects/]()"
+				}
+			],
+			"description": "See [https://docs.cloudshare.com/rest-api/v3/project/]()"
+		},
+		{
+			"name": "Training",
+			"item": [
+				{
+					"name": "Class",
+					"item": [
+						{
+							"name": "Get Classes",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-class/](https://docs.cloudshare.com/rest-api/v3/training/class/get-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Class Details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-id/](https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-id/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Class Info with Students",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/getdetailed?classId={{classId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"getdetailed"
+									],
+									"query": [
+										{
+											"key": "classId",
+											"value": "{{classId}}",
+											"description": "The id of the class. To retrieve class ids, use GET /api/v3/class\nExample: COMcB7gdfab2DFm0WqklnX6Q2\nSo the call will be: /api/v3/class/actions/getdetailed?classId=COMcB7gdfab2DFm0WqklnX6Q2"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/](https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Create a Class",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{className}}\",\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"blueprintId\": \"{{blueprintId}}\",\r\n    \"policyId\": \"{{policyId}}\",\r\n    \"instructorVupId\": \"{{instructorVupId}}\",\r\n    \"timeZoneId\": \"{{timeZoneId}}\",\r\n    \"regionId\": \"{{regionId}}\",\r\n    \"startDate\": \"{{startDate}}\",\r\n    \"endDate\": \"{{endDate}}\",\r\n    \"studentPassphrase\": \"{{studentPassphrase}}\",\r\n    \"useCustomInvitationEmail\": {{useCustomInvitationEmail}},\r\n    \"customInvitationEmailSubject\": {{customInvitationEmailSubject}},\r\n    \"customInvitationEmailBody\": {{customInvitationEmailBody}},\r\n    \"limitEarlyAccess\": {{limitEarlyAccess}},\r\n    \"permitAccessToNonRegisteredStudent\": {{permitAccessToNonRegisteredStudent}},\r\n    \"maxStudents\": {{maxStudents}},\r\n    \"address\": {\r\n\t\t\"state\": \"{{state}}\",\r\n\t\t\"address1\": \"{{address1}}\",\r\n\t\t\"address2\": \"{{address2}}\",\r\n\t\t\"zipCode\": \"{{zipCode}}\",\r\n\t\t\"city\": \"{{city}}\",\r\n\t\t\"country\": \"{{country}}\"\r\n    },\r\n    \"customFieldsValues\": {{customFieldsValues}},\r\n    \"enableSteps\": {{enableSteps}},\r\n    \"studentsCanSwitchStep\": {{studentsCanSwitchStep}},\r\n    \"steps\": {{steps}},\r\n    \"selfPaced\": {{selfPaced}},\r\n    \"allowMultipleStudentLogin\": {{allowMultipleStudentLogin}},\r\n    \"allowAudioVideo\": {{allowAudioVideo}},\r\n    \"shareInstructorCloudFolderWithAllStudents\": {{shareInstructorCloudFolderWithAllStudents}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class/](https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Update a Class",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": {{classId}},\r\n    \"name\": \"{{className}}\",\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"blueprintId\": \"{{blueprintId}}\",\r\n    \"policyId\": \"{{policyId}}\",\r\n    \"instructorVupId\": \"{{instructorVupId}}\",\r\n    \"timeZoneId\": \"{{timeZoneId}}\",\r\n    \"startDate\": \"{{startDate}}\",\r\n    \"endDate\": \"{{endDate}}\",\r\n    \"studentPassphrase\": \"{{studentPassphrase}}\",\r\n    \"useCustomInvitationEmail\": {{useCustomInvitationEmail}},\r\n    \"customInvitationEmailSubject\": {{customInvitationEmailSubject}},\r\n    \"customInvitationEmailBody\": {{customInvitationEmailBody}},\r\n    \"limitEarlyAccess\": {{limitEarlyAccess}},\r\n    \"permitAccessToNonRegisteredStudent\": {{permitAccessToNonRegisteredStudent}},\r\n    \"maxStudents\": {{maxStudents}},\r\n    \"address\": {\r\n\t\t\"state\": \"{{state}}\",\r\n\t\t\"address1\": \"{{address1}}\",\r\n\t\t\"address2\": \"{{address2}}\",\r\n\t\t\"zipCode\": \"{{zipCode}}\",\r\n\t\t\"city\": \"{{city}}\",\r\n\t\t\"country\": \"{{country}}\"\r\n    },\r\n    \"customFieldsValues\": {{customFieldsValues}},\r\n    \"selfPaced\": {{selfPaced}},\r\n    \"allowMultipleStudentLogin\": {{allowMultipleStudentLogin}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/put-api-v3-class/](https://docs.cloudshare.com/rest-api/v3/training/class/put-api-v3-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete a Class",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/delete-api-v3-class-id/](https://docs.cloudshare.com/rest-api/v3/training/class/delete-api-v3-class-id/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get all countries that can be set as class location",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/countries?fullCountriesList={{fullCountriesList}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"countries"
+									],
+									"query": [
+										{
+											"key": "fullCountriesList",
+											"value": "{{fullCountriesList}}",
+											"description": "Must always be true :|"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-actions-countries/](https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-actions-countries/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get project members who can be assigned to classes as instructors",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/instructors?policyId={{policyId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"instructors"
+									],
+									"query": [
+										{
+											"key": "policyId",
+											"value": "{{policyId}}",
+											"description": "The ID of a policy. To retrieve policy IDs, use GET /api/v3/projects/ID/policies"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-actions-instructors/](https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-actions-instructors/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get  custom class creation fields defined in a specified project",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/customfields?projectId={{projectId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"customfields"
+									],
+									"query": [
+										{
+											"key": "projectId",
+											"value": "{{projectId}}",
+											"description": "The id of the project. To retrieve project IDs, use GET /api/v3/projects.\nNOTE: I don;t think these can be set publicly, they can only be setup in the backend by CloudShare support!!!"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-actions-customfields/](https://docs.cloudshare.com/rest-api/v3/training/class/get-api-v3-class-actions-customfields/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Send Invites to Students",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"classId\": {{classId}},\r\n    \"studentIds\": {{studentIds}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/sendinvitations?isMultiple={{isMultiple}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"sendinvitations"
+									],
+									"query": [
+										{
+											"key": "isMultiple",
+											"value": "{{isMultiple}}",
+											"description": "Must always be true"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class-actions-sendinvitations/](https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class-actions-sendinvitations/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Suspend all student environments",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": {{classId}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/suspendallenvironments",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"suspendallenvironments"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/put-api-v3-class-actions-suspendallenvironments/](https://docs.cloudshare.com/rest-api/v3/training/class/put-api-v3-class-actions-suspendallenvironments/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Resume a student senvironment",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"classId\": {{classId}},\r\n    \"studentIds\": {{studentIds}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students/actions/ResumeEnvironmentForStudent",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students",
+										"actions",
+										"ResumeEnvironmentForStudent"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class-id-students-actions-resumeenvironmentforstudent/](https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class-id-students-actions-resumeenvironmentforstudent/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete all student environments",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/actions/deleteallenvironments",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"actions",
+										"deleteallenvironments"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/delete-api-v3-class-actions-deleteallenvironments/](https://docs.cloudshare.com/rest-api/v3/training/class/delete-api-v3-class-actions-deleteallenvironments/)"
+							},
+							"response": []
+						},
+						{
+							"name": "SposnerdLink Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"classId\": \"{{classId}}\",\r\n    \"studentEmail\": \"{{studentEmail}}\",\r\n    \"studentFirstName\": \"{{studentFirstName}}\",\r\n    \"studentLastName\": \"{{studentLastName}}\",\r\n    \"registrationInfo\": {\r\n        \"company\": \"{{registrationInfo.company}}\",\r\n        \"phone\": \"{{registrationInfo.phone}}\"\r\n    },\r\n    \"preRegisterStudent\": \"{{preRegisterStudent}}\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/sponsoredlink",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"sponsoredlink"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/post-apiv3classsponsoredlink/](https://docs.cloudshare.com/rest-api/v3/training/class/post-apiv3classsponsoredlink/)"
+							},
+							"response": []
+						},
+						{
+							"name": "SposnerdLink Disable",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"classId\": \"{{classId}}\",\r\n    \"studentEmail\": \"{{studentEmail}}\",\r\n    \"unregisterStudent\": {{unregisterStudent}}\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/disablesponsoredlink",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"disablesponsoredlink"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/post-apiv3classdisablesponsoredlink/](https://docs.cloudshare.com/rest-api/v3/training/class/post-apiv3classdisablesponsoredlink/)"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/training/class/](https://)\n\nA class is a time period during which:\n\n- Specified end users (students) can spin up a copy of a specified environment.\n    \n- An instructor can guide a learning experience by monitoring students’ environments and their activities in the environments, and can intervene when needed."
+				},
+				{
+					"name": "Students",
+					"item": [
+						{
+							"name": "Get Students",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students?isFull={{isFull}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students"
+									],
+									"query": [
+										{
+											"key": "isFull",
+											"value": "{{isFull}}",
+											"description": "Boolean.\ntrue. Returns details of the VMs in each student’s environment as well as other details\nfalse. Returns a shorter list of details, which does not include the VM details"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/students/get-api-v3-class-id-students/](https://docs.cloudshare.com/rest-api/v3/training/students/get-api-v3-class-id-students/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Student Details",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students/{{studentId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students",
+										"{{studentId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/](https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Student",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students/{{studentId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students",
+										"{{studentId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/students/delete-api-v3-class-id-students-id/](https://docs.cloudshare.com/rest-api/v3/training/students/delete-api-v3-class-id-students-id/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Register a student to class",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{studentEmail1}}\",\r\n    \"firstName\": \"{{studentFirstName1}}\",\r\n    \"lastName\": \"{{studentLastName1}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/students/post-api-v3-class-id-students/](https://docs.cloudshare.com/rest-api/v3/training/students/post-api-v3-class-id-students/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Update a student",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{studentEmail1}}\",\r\n    \"firstName\": \"{{studentFirstName1}}\",\r\n    \"lastName\": \"{{studentLastName1}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students/{{studentId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students",
+										"{{studentId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/students/put-api-v3-class-id-students-id/](https://docs.cloudshare.com/rest-api/v3/training/students/put-api-v3-class-id-students-id/)"
+							},
+							"response": []
+						}
+					],
+					"description": "[https://docs.cloudshare.com/rest-api/v3/training/students/](https://docs.cloudshare.com/rest-api/v3/training/students/)\n\nStudents are end users who attend classes"
+				},
+				{
+					"name": "Instructors",
+					"item": [
+						{
+							"name": "Get Instructors",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/instructors/class?classId={{classId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"instructors",
+										"class"
+									],
+									"query": [
+										{
+											"key": "classId",
+											"value": "{{classId}}",
+											"description": "The ID of the class. To retrieve class IDs, use GET /api/v3/class"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/instructors/get-api-v3-instructors/](https://docs.cloudshare.com/rest-api/v3/training/instructors/get-api-v3-instructors/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Add an Instructor to a class",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"instructorVupId\": \"{{instructorVupId}}\",\r\n    \"classId\": \"{{classId}}\",\r\n    \"sendInviteNow\": \"{{sendInviteNow}}\",\r\n    \"disableEnvCreation\": \"{{disableEnvCreation}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/instructors/",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"instructors",
+										""
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/instructors/post-api-v3-instructors/](https://docs.cloudshare.com/rest-api/v3/training/instructors/post-api-v3-instructors/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete an Instructor from a class",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"instructorVupId\": \"{{instructorVupId}}\",\r\n    \"classId\": \"{{classId}}\",\r\n    \"sendInviteNow\": \"{{sendInviteNow}}\",\r\n    \"disableEnvCreation\": \"{{disableEnvCreation}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/instructors/{{instructorId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"instructors",
+										"{{instructorId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/instructors/delete-api-v3-instructors/](https://docs.cloudshare.com/rest-api/v3/training/instructors/delete-api-v3-instructors/)"
+							},
+							"response": []
+						}
+					],
+					"description": "[https://docs.cloudshare.com/rest-api/v3/training/instructors/](https://docs.cloudshare.com/rest-api/v3/training/instructors/)\n\nInstructors are users who manage classes."
+				}
+			],
+			"description": "See [https://docs.cloudshare.com/rest-api/v3/training/]()"
+		},
+		{
+			"name": "Utilities",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/ping",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"ping"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/utilities/ping/ping/](https://docs.cloudshare.com/rest-api/v3/utilities/ping/ping/)"
+					},
+					"response": []
+				},
+				{
+					"name": "Regions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/regions",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"regions"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/utilities/regions/](https://docs.cloudshare.com/rest-api/v3/utilities/regions/)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Timezones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/timezones",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"timezones"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/utilities/timezones/get-api-v3-timezones/](https://docs.cloudshare.com/rest-api/v3/utilities/timezones/get-api-v3-timezones/)"
+					},
+					"response": []
+				}
+			],
+			"description": "See [https://docs.cloudshare.com/rest-api/v3/utilities/](https://)"
+		},
+		{
+			"name": "Enviroments",
+			"item": [
+				{
+					"name": "Enviroments",
+					"item": [
+						{
+							"name": "Get Env",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/envs",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs"
+									],
+									"query": [
+										{
+											"key": "criteria",
+											"value": "{{criteria}}",
+											"description": "Optional. Array. {criteria_value} can be:\n - allowned. Returns only environments owned by the user.\n - allvisible (default). Returns all environments visible to the user.",
+											"disabled": true
+										},
+										{
+											"key": "brief",
+											"value": "{{brief}}",
+											"description": "Optional. Boolean. Whether to return a less detailed or more detailed response. {brief_value} can be:\n - true (default). Returns less detail.\n - false. Returns more detail.",
+											"disabled": true
+										},
+										{
+											"key": "ownerEmail",
+											"value": "{{ownerEmail}}",
+											"description": "Optional. Filters results by the environment owner's email address, where {ownerEmail} is the environment owner's email address.",
+											"disabled": true
+										},
+										{
+											"key": "classId",
+											"value": "{{classId}}",
+											"description": "Optional. Filters results to include only environments created for a specified class, including instructor and student environments, where {classId} is the ID of the class.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-envs/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Env by ID",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/envs/{{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"{{envID}}"
+									],
+									"query": [
+										{
+											"key": "permission",
+											"value": "{{permission}}",
+											"description": "Optional. Specifies a type of permission to access the environment. Returns an error (status code 500) if the requesting user does not have the specified permission level. Otherwise, returns the environment properties.\n{permission value} can be:\n\n - view. Returns error if the requesting user is not allowed to view the environment.\n - edit. Returns error if the requesting user is not allowed to edit the environment.\n - owner. Returns error if the requesting user is not the owner of the environment.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-envs-id/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Env Resources",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getenvresources?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getenvresources"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "The ID of the environment. To retrieve environment IDs, use GET /api/v3/envs"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-apiv3envsactionsgetenvresources/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Multiple Environment Resources",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getmultipleenvsresources?subscriptionId={{subscriptionId}}&starttime={{starttime}}&endtime={{endtime}}&skip={{skip}}&take={{take}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getmultipleenvsresources"
+									],
+									"query": [
+										{
+											"key": "subscriptionId",
+											"value": "{{subscriptionId}}",
+											"description": "Specifies the vanity name or FQDN of a machine, where {machineVanity} is the vanity name or FQDN (e.g. uvo1yg1ocn13278d.vm.cld.dev)."
+										},
+										{
+											"key": "starttime",
+											"value": "{{starttime}}",
+											"description": "Specifies the start of the time range, where {starttime_value} is the start of the time range in the format ISO 8601. For example, \"2017-01-01\""
+										},
+										{
+											"key": "endtime",
+											"value": "{{endtime}}",
+											"description": "Specifies the end of the time range, where {endtime_value} is the end of the time range in the format ISO 8601. For example, “2017-02-01“."
+										},
+										{
+											"key": "skip",
+											"value": "{{skip}}",
+											"description": "Optional. Specifies to skip the first {skip_value} records, where {skip_value} is an integer (default: 0). Can be used iteratively in conjunction with take to view distinct sets of environment records."
+										},
+										{
+											"key": "take",
+											"value": "{{take}}",
+											"description": "Optional. Limits the number of records returned, where {take_value} is the maximum number of records to return. Integer (default: 1000, maximum: 1000)."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-apiv3envsactionsgetextendedbymachinevanity/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Extended",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// **** START ****\r",
+											"// The follow code calulates the raiming time left for an environment. \r",
+											"\r",
+											"const responseJson = pm.response.json();\r",
+											"const expirationTime = responseJson.expirationTime;\r",
+											"// const timeFormat = \"ddd, DD MMM YYYY hh:mm:ss\" \r",
+											"\r",
+											"var moment = require('moment');\r",
+											"var expiration = moment(expirationTime);\r",
+											"var today = moment();\r",
+											"\r",
+											"console.log(\"Expiration date (Epoch time in milliseconds): \" + expiration);\r",
+											"console.log(\"Todays date (Epoch time in milliseconds): \" + today);\r",
+											"\r",
+											"var diffSeconds = expiration.diff(today, 'seconds');\r",
+											"\r",
+											"var numDays = Math.floor(diffSeconds / (24 * 3600));\r",
+											"var numHours = Math.floor((diffSeconds % (24 * 3600)) / 3600);\r",
+											"var numMinutes = Math.floor((diffSeconds % (3600) / 60));\r",
+											"var numSeconds = Math.floor(diffSeconds % 60 );\r",
+											"\r",
+											"console.log(\"Time left: \" + numDays + \" Days, \" + numHours + \" Hours, \" + numMinutes + \" Minutes, \" + numSeconds + \" Seconds.\" );\r",
+											"// **** STOP ****"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getextended?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getextended"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "The ID of the environment. To retrieve environment IDs, use GET /api/v3/envs"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/actions-getextended/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Extended By SponseredLink token",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getextendedbytoken?sponsoredLoginToken={{sponsoredLoginToken}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getextendedbytoken"
+									],
+									"query": [
+										{
+											"key": "sponsoredLoginToken",
+											"value": "{{sponsoredLoginToken}}",
+											"description": "Specifies the token returned by the sponsored login API (https://docs.cloudshare.com/rest-api/v3/users/sponsoredlinks/post-sponsoredlinks/), where {sponsoredLoginToken} is the token."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-apiv3envsactionsgetextendedbytoken/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Extended By Machine Vanity",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getextendedbymachinevanity?machineVanity={{machineVanity}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getextendedbymachinevanity"
+									],
+									"query": [
+										{
+											"key": "machineVanity",
+											"value": "{{machineVanity}}",
+											"description": "Specifies the vanity name or FQDN of a machine, where {machineVanity} is the vanity name or FQDN (e.g. uvo1yg1ocn13278d.vm.cld.dev)."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-apiv3envsactionsgetextendedbymachinevanity/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Extend Environment",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/postponeinactivity?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"postponeinactivity"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-extend/](https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-extend/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Postpone Susspend",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/extend?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"extend"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-postponeinactivity/](https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-postponeinactivity/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Resume Environment",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/resume?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"resume"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-resume/](https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-resume/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Revert Environment",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/revert?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"revert"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+										},
+										{
+											"key": "snapshotId",
+											"value": "{{snapshotId}}",
+											"description": "Specifies the snapshot to which to revert the environment, where {snapshotId} is the snapshot’s ID. If null, the environment will be reverted to the default snapshot.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-revert/](https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-revert/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Suspend Environment",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/suspend?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"suspend"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "Specifies the environment, where {envId} is the environment’s ID. To retrieve environment IDs, use GET /api/v3/envs."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-suspend/](https://docs.cloudshare.com/rest-api/v3/environments/envs/put-api-v3-envs-actions-suspend/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Env",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/envs/{{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"{{envID}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/delete-envs-id/](https://docs.cloudshare.com/rest-api/v3/environments/envs/delete-envs-id/)"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/environments/envs/]()"
+				},
+				{
+					"name": "VMs",
+					"item": [
+						{
+							"name": "Delete VM",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/vms/{{vmID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"{{vmID}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/delete-api-v3-vms-id/](https://docs.cloudshare.com/rest-api/v3/environments/vms/delete-api-v3-vms-id/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Reset (hard) a VM",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/vms/actions/reboot?vmId={{vmID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"actions",
+										"reboot"
+									],
+									"query": [
+										{
+											"key": "vmId",
+											"value": "{{vmID}}",
+											"description": "The ID of the VM. To retrieve the IDs of VMs in an environment, use GET /api/v3/envs/actions/getextended."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/put-api-v3-vms-actions-reboot/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Revert a VM",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/vms/actions/revert?vmId={{vmID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"actions",
+										"revert"
+									],
+									"query": [
+										{
+											"key": "vmId",
+											"value": "{{vmID}}",
+											"description": "The ID of the VM. To retrieve the IDs of VMs in an environment, use GET /api/v3/envs/actions/getextended."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/put-api-v3-vms-actions-revert/](https://docs.cloudshare.com/rest-api/v3/environments/vms/put-api-v3-vms-actions-revert/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Edit VM hardware",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"vmId\": \"{{vmID}}\",\r\n    \"numCpus\": {{}numCpus}},\r\n    \"memorySizeMBs\": {{memorySizeMBs}},\r\n    \"diskSizeGBs\": {{diskSizeGBs}}\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/vms/actions/editvmhardware",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"actions",
+										"editvmhardware"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/put-api-v3-vms-actions-editvmhardware/](https://docs.cloudshare.com/rest-api/v3/environments/vms/put-api-v3-vms-actions-editvmhardware/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Execution Path",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Execution ID given\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.executionId).to.not.be.undefined;\r",
+											"  console.log(\"Execution ID = \" + responseJson.executionId);\r",
+											"  pm.environment.set('executionId', responseJson.executionId);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"vmId\": \"{{vmID}}\",\r\n    \"path\": \"{{path}}\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/vms/actions/executepath",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"actions",
+										"executepath"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/post-api-v3-vms-actions-executepath/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Check Execution Status",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/vms/actions/checkexecutionstatus?vmId={{vmID}}&executionId={{executionId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"actions",
+										"checkexecutionstatus"
+									],
+									"query": [
+										{
+											"key": "vmId",
+											"value": "{{vmID}}",
+											"description": "The ID of the VM on which the script was executed"
+										},
+										{
+											"key": "executionId",
+											"value": "{{executionId}}",
+											"description": "The ID returned by the execution request, PUT /api/v3/vms/actions/executepath"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/get-api-v3-vms-actions-checkexecutionstatus/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Remote access file",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/vms/actions/getremoteaccessfile?vmId={{vmID}}&desktopHeight={{desktopHeight}}&desktopWidth={{desktopWidth}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"vms",
+										"actions",
+										"getremoteaccessfile"
+									],
+									"query": [
+										{
+											"key": "vmId",
+											"value": "{{vmID}}",
+											"description": "The ID of the VM. To retrieve the IDs of all VMs in an environment, use GET /api/v3/envs/actions/getextended."
+										},
+										{
+											"key": "desktopHeight",
+											"value": "{{desktopHeight}}",
+											"description": "The height resolution of the remote access session, in pixels."
+										},
+										{
+											"key": "desktopWidth",
+											"value": "{{desktopWidth}}",
+											"description": "The width resolution of the remote access session, in pixels."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/vms/get-api-v3-vms-actions-checkexecutionstatus/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/environments/vms/]()"
+				}
+			],
+			"description": "See [https://docs.cloudshare.com/rest-api/v3/environments/]()"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Invitations",
+					"item": [
+						{
+							"name": "invitations",
+							"request": {
+								"method": "OPTIONS",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/invitations?projectNameFilter={{projectNameFilter}}&onlyProjectMembers={{onlyProjectMembers}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"invitations"
+									],
+									"query": [
+										{
+											"key": "projectNameFilter",
+											"value": "{{projectNameFilter}}",
+											"description": "Optional. Excludes options outside the specified project, where {projectName} is the name of the project."
+										},
+										{
+											"key": "projectIdFilter",
+											"value": "{{projectIdFilter}}",
+											"description": "Optional. Specifies only to return results that belong to the specified project, where {projectId} is the id of the project.",
+											"disabled": true
+										},
+										{
+											"key": "blueprintNameFilter",
+											"value": "{{blueprintNameFilter}}",
+											"description": "Optional. Excludes options irrelevant to the specified blueprint, where {blueprintName} is the name of the blueprint.",
+											"disabled": true
+										},
+										{
+											"key": "blueprintIdFilter",
+											"value": "{{blueprintIdFilter}}",
+											"description": "Optional. Specifies to return only options that are relevant to the specified blueprint, where {blueprintId} is the id of the blueprint.",
+											"disabled": true
+										},
+										{
+											"key": "policyNameFilter",
+											"value": "{{policyNameFilter}}",
+											"description": "Optional. Excludes options irrelevant to the specified environment policy, where {policyName} is the policy.",
+											"disabled": true
+										},
+										{
+											"key": "policyIdFilter",
+											"value": "{{policyIdFilter}}",
+											"description": "Optional. Specifies to return only options that are relevant to the specified environment policy, where {policyId} is the id of the policy.",
+											"disabled": true
+										},
+										{
+											"key": "onlyProjectMembers",
+											"value": "{{onlyProjectMembers}}",
+											"description": "Optional. Defaults to false. When set to true, will only return the owningProjectMembers section."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/invitations/invitations/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Invite to PoC",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Login Token is provided\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.invitationDetailsUrl).to.not.be.undefined;\r",
+											"  console.log(responseJson.invitationDetailsUrl);\r",
+											"  pm.environment.set('invitationDetailsUrl', responseJson.invitationDetailsUrl);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"policyId\": \"{{policyId}}\",\r\n    \"blueprintId\": \"{{blueprintId}}\",\r\n    \"owningProjectMemberId\": \"{{owningProjectMemberId}}\",\r\n    \"opportunity\": \"{{opportunity}}\",\r\n    \"validForDays\": {{validForDays}},\r\n    \"email\": \"{{pocEmali}}\",\r\n    \"firstName\": \"{{pocUserFirstName}}\",\r\n    \"lastName\": \"{{pocUserLastName}}\",\r\n    \"regionId\": \"{{regionId}}\",\r\n    \"inviteeCanSetEmail\": {{InviteeCanSetEmail}},\r\n    \"customEmailSubject\": \"{{customEmailSubject}}\",\r\n    \"customEmailBody\": \"{{customEmailBody}}\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/invitations/actions/invitetopoc",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"invitations",
+										"actions",
+										"invitetopoc"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/invitations/invitations-actions-invitetopoc/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Invite project member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Login Token is provided\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.invitationDetailsUrl).to.not.be.undefined;\r",
+											"  console.log(responseJson.invitationDetailsUrl);\r",
+											"  pm.environment.set('invitationDetailsUrl', responseJson.invitationDetailsUrl);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Invitation URL provided\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.acceptInvitationUrl).to.not.be.undefined;\r",
+											"  console.log(responseJson.acceptInvitationUrl);\r",
+											"  pm.environment.set('acceptInvitationUrl', responseJson.acceptInvitationUrl);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{projectMemberEmail}}\",\r\n    \"firstName\": \"{{projectMemberFirstName}}\",\r\n    \"lastName\": \"{{projectMemberLastName}}\",\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"teamId\": \"{{teamId}}\",\r\n    \"userLevel\": {{userLevel}},\r\n    \"suppressEmails\": \"{{suppressEmails}}\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/invitations/actions/inviteprojectmember",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"invitations",
+										"actions",
+										"inviteprojectmember"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/invitations/invitations-actions-inviteprojectmember]()"
+							},
+							"response": []
+						}
+					],
+					"description": "[https://docs.cloudshare.com/rest-api/v3/users/invitations/]()"
+				},
+				{
+					"name": "Sponsored Links",
+					"item": [
+						{
+							"name": "SponseredLinks",
+							"request": {
+								"method": "OPTIONS",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/sponsoredlinks?blueprintNameFilter={{blueprintNameFilter}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"sponsoredlinks"
+									],
+									"query": [
+										{
+											"key": "projectNameFilter",
+											"value": "{{projectNameFilter}}",
+											"description": "Optional. Excludes options outside the specified project, where {projectName} is the name of the project.",
+											"disabled": true
+										},
+										{
+											"key": "blueprintNameFilter",
+											"value": "{{blueprintNameFilter}}",
+											"description": "Optional. Excludes options irrelevant to the specified blueprint, where {blueprintName} is the name of the blueprint.\n"
+										},
+										{
+											"key": "policyNameFilter",
+											"value": "{{policyNameFilter}}",
+											"description": "Optional. Excludes options irrelevant to the specified environment policy, where {policyName} is the policy.\n",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/sponsoredlinks/sponsoredlinks]()"
+							},
+							"response": []
+						},
+						{
+							"name": "SponseredLinks",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Login Token is provided\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.loginToken).to.not.be.undefined;\r",
+											"  console.log(\"https://use.cloudshare.com/Ent/Login.mvc/SponsoredLogin?token=\" + responseJson.loginToken);\r",
+											"  pm.environment.set('sponsoredLoginToken', responseJson.loginToken);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{userEmail}}\",\r\n    \"firstName\": \"{{userFirstName}}\",\r\n    \"lastName\": \"{{userLastName}}\",\r\n    \"jobTitle\": \"{{userJobTitle}}\",\r\n    \"phoneNumber\": \"{{userPhoneNumber}}\",\r\n    \"company\": \"{{userCompany}}\",\r\n    \"policyId\": \"{{policyId}}\",\r\n    \"blueprintId\": \"{{blueprintId}}\",\r\n    \"useLatestSnapshot\": {{useLatestSnapshot}},\r\n    \"expirationMinutes\": {{expirationMinutes}},\r\n    \"inviterId\": \"{{inviterId}}\",\r\n    \"shouldAskForPassword\": {{shouldAskForPassword}},\r\n    \"regionId\": \"{{regionId}}\",\r\n    \"allowMultipleUsages\": {{allowMultipleUsages}},\r\n    \"disableEnvironmentAcceptedNotificationMail\": {{disableEnvironmentAcceptedNotificationMail}},\r\n    \"disableEnvironmentAcceptedMailToInvitationOwner\": {{disableEnvironmentAcceptedMailToInvitationOwner}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/sponsoredlinks",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"sponsoredlinks"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/sponsoredlinks/post-sponsoredlinks/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/users/sponsoredlinks/]()\n\nA sponsored link generates an environment for an end user and logs the user into the environment."
+				},
+				{
+					"name": "Teams",
+					"item": [
+						{
+							"name": "Get Teams",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/teams",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"teams"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/teams/get-api-v3-teams]()"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/users/teams/]()"
+				},
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "Get Login URL",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/users/actions/getloginurl",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"users",
+										"actions",
+										"getloginurl"
+									],
+									"query": [
+										{
+											"key": "redirectPath",
+											"value": "{{redirectPath}}",
+											"description": "Optional. Specifies to redirect the user to a specified path within the CloudShare domain (use.cloudshare.com), such as a specific page in the UI, where {redirectPath} is the path.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/users/actions-getloginurl]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Replacing Users",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"users\": [\r\n        {\"id\": \"{{userID2}}\"}\r\n    ],\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"teamId\": \"{{teamId}}\",\r\n    \"role\": \"{{role}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/users/actions/GetReplacingUsersOptions",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"users",
+										"actions",
+										"GetReplacingUsersOptions"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "skip",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										},
+										{
+											"key": "take",
+											"value": null,
+											"description": "Optional",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/users/actions-getreplacingusersoptions/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove User Role",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Typcial Postman test to ensure that the response header was OK.\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Typcial Postman test to ensure that the response has a value called 'invitationDetailsUrl'\r",
+											"pm.test(\"Success response received in JSON\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.invitationDetailsUrl).to.not.be.undefined;\r",
+											"  console.log(responseJson.invitationDetailsUrl);\r",
+											"  // Save the 'invitationDetailsUrl to an environment variable\r",
+											"  pm.environment.set('invitationDetailsUrl', responseJson.invitationDetailsUrl);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"users\": [\r\n        {\"id\": \"{{userID1}}\"}\r\n    ],\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"teamId\": \"{{teamId}}\",\r\n    \"role\": \"{{role}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/users/actions/RemoveUserRole",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"users",
+										"actions",
+										"RemoveUserRole"
+									],
+									"query": [
+										{
+											"key": "replacingUserId",
+											"value": null,
+											"description": "Optional. In order to remove an active user, you can replace them with another user. Use the replace user query parameter and the relevant user id to replace and remove users. The replacement user will receive ownership of any end-user environments, policies, and invitations.\n",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/users/actions-removeuserrole/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "See [https://docs.cloudshare.com/rest-api/v3/users/users/]()"
+				}
+			],
+			"description": "See [https://docs.cloudshare.com/rest-api/v3/users/]()"
+		},
+		{
+			"name": "Integrations",
+			"item": [
+				{
+					"name": "List webhooks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/webhooks?cloudshareAccountId={{cloudshareAccountId}}&projectIds={{projectIds}}",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"webhooks"
+							],
+							"query": [
+								{
+									"key": "cloudshareAccountId",
+									"value": "{{cloudshareAccountId}}",
+									"description": "The id of the account."
+								},
+								{
+									"key": "projectIds",
+									"value": "{{projectIds}}",
+									"description": "A list of project ids."
+								}
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/integrations/webhooks/]()"
+					},
+					"response": []
+				},
+				{
+					"name": "List webhook by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/webhooks/{{webhookId}}",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"webhooks",
+								"{{webhookId}}"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/integrations/webhooks/get]()"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete webhook by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"  pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/webhooks/{{webhookId}}",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"webhooks",
+								"{{webhookId}}"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/integrations/webhooks/delete/]()"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Webhook Subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"ID of webhook is created\", function () {\r",
+									"  const responseJson = pm.response.json();\r",
+									"  pm.expect(responseJson.id).to.not.be.undefined;\r",
+									"  console.log(responseJson.invitationDetailsUrl);\r",
+									"  pm.environment.set('webhookId', responseJson.id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": \"{{cloudshareAccountId}}\",\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"callbackUrl\": \"{{callbackUrl}}\",\r\n    \"name\": \"{{webhookName}}\",\r\n    \"description\": \"{{webhookDescription}}\",\r\n    \"events\": [\r\n        \"environment.suspended\",\r\n        \"environment.deleted\",\r\n        \"environment.archived\"\r\n    ]\r\n}\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseURL}}/webhooks",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"webhooks"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/integrations/webhooks/post/]()"
+					},
+					"response": []
+				}
+			],
+			"description": "[https://docs.cloudshare.com/rest-api/v3/integrations/]()"
+		},
+		{
+			"name": "Public Cloud",
+			"item": [
+				{
+					"name": "GET the Public Cloud ExternalID from a CloudShare EnvID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/externalclouds/ervins/{{envID}}",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"externalclouds",
+								"ervins",
+								"{{envID}}"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/public-clouds/external-resources/get-api-v3-externalclouds-ervin-id](https://docs.cloudshare.com/rest-api/v3/public-clouds/external-resources/get-api-v3-externalclouds-ervin-id)"
+					},
+					"response": []
+				},
+				{
+					"name": "GET the Public Cloud External Resource Summary for an Env",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/externalclouds/ervin/{{ervinId}}",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"externalclouds",
+								"ervin",
+								"{{ervinId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET the Public Cloud VM details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth-header}}",
+								"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseURL}}/externalCloudsVms/{{envID}}",
+							"host": [
+								"{{BaseURL}}"
+							],
+							"path": [
+								"externalCloudsVms",
+								"{{envID}}"
+							]
+						},
+						"description": "[https://docs.cloudshare.com/rest-api/v3/public-clouds/external-vms/get-api-v3-externalcloudsvms-environmentid](https://docs.cloudshare.com/rest-api/v3/public-clouds/external-vms/get-api-v3-externalcloudsvms-environmentid)"
+					},
+					"response": []
+				}
+			],
+			"description": "[https://docs.cloudshare.com/rest-api/v3/public-clouds/](https://docs.cloudshare.com/rest-api/v3/public-clouds/)"
+		},
+		{
+			"name": "Useful chained calls and API tweaks",
+			"item": [
+				{
+					"name": "Show active enviroments using a specific policy",
+					"item": [
+						{
+							"name": "Get Envs and filter for policy",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Define the policy ID that you want to search for\r",
+											"var policyId = \"POGDMaaoy8lsKdHMCwy5cdBQ2\";\r",
+											"\r",
+											"\r",
+											"// Setup an ampty array to collect all matched items\r",
+											"var IdArray = [];\r",
+											"_.each(pm.response.json(), (item) => {\r",
+											"    // Useful for troubleshooting - shows ALL items parsed from the JSON response, but this can be a looooong list\r",
+											"    // console.log(item);\r",
+											"    if (item.policyId === policyId) {\r",
+											"        // Useful for troubleshooting - shows all items matched in the JSON response\r",
+											"        // console.log(item);\r",
+											"\r",
+											"        // Add the matched item to the array\r",
+											"        IdArray.push(item.id);\r",
+											"    }\r",
+											"})\r",
+											"// Show the final array in the console\r",
+											"console.log(IdArray);\r",
+											"\r",
+											"\r",
+											"// This is an alreantive method to the above - I should combine them into one process\r",
+											"pm.test(\"Filter JSON based on a specific field\", function () {\r",
+											"    var responseData = pm.response.json();\r",
+											"\r",
+											"    responseData.forEach(function (item) {\r",
+											"        if (item.policyId === policyId) {\r",
+											"            pm.expect(item).to.have.property('id');\r",
+											"            pm.expect(item).to.have.property('name');\r",
+											"        }\r",
+											"    });\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/envs?criteria={{criteria}}&brief={{brief}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs"
+									],
+									"query": [
+										{
+											"key": "criteria",
+											"value": "{{criteria}}",
+											"description": "Optional. Array. {criteria_value} can be:\n - allowned. Returns only environments owned by the user.\n - allvisible (default). Returns all environments visible to the user."
+										},
+										{
+											"key": "brief",
+											"value": "{{brief}}",
+											"description": "Optional. Boolean. Whether to return a less detailed or more detailed response. {brief_value} can be:\n - true (default). Returns less detail.\n - false. Returns more detail."
+										},
+										{
+											"key": "ownerEmail",
+											"value": "{{ownerEmail}}",
+											"description": "Optional. Filters results by the environment owner's email address, where {ownerEmail} is the environment owner's email address.",
+											"disabled": true
+										},
+										{
+											"key": "classId",
+											"value": "{{classId}}",
+											"description": "Optional. Filters results to include only environments created for a specified class, including instructor and student environments, where {classId} is the ID of the class.",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "We simply use the GET Envs request then in the Test section search for environment in the returned JSON that include a policy match the specified Policy ID. The results are saved in an array an logged in the console.\n\nNOTE: the Environment ID includes a prefix \"EN\", but (for some reason) this is dropped when browsing the environment details page ([https://use.cloudshare.com/Ent/Environment.mvc/View/](https://use.cloudshare.com/Ent/Environment.mvc/View/)). For example, the EnvID:\n\nENxxxxxxxxxxxxxxxxxxx\n\nWill become the URL:\n\n[https://use.cloudshare.com/Ent/Environment.mvc/View/xxxxxxxxxxxxxxxxxxx](https://use.cloudshare.com/Ent/Environment.mvc/View/xxxxxxxxxxxxxxxxxxx)\n\nTo view the environment details page."
+				},
+				{
+					"name": "Show deleted env using a specific policy",
+					"item": [
+						{
+							"name": "Get Multiple Environment Resources Copy",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start Get Multiple Environment Resources TEST ****\");\r",
+											"\r",
+											"// Flags to check if the test passed\r",
+											"let test1Passed, test2Passed;\r",
+											"\r",
+											"// Grab the response from the request\r",
+											"let responses = pm.environment.get('responses');\r",
+											"\r",
+											"// And get the JSON\r",
+											"const responseJson = pm.response.json();\r",
+											"\r",
+											"// Set the envIds array to contain all the environments from the retrived JSON\r",
+											"const envIds = responseJson.map(env => env.id);\r",
+											"\r",
+											"// Store the envIds as a local variable 'storedEnvIds'. This is used later to restore the array for subsquest itterations\r",
+											"pm.variables.set('storedEnvIds', envIds);\r",
+											"\r",
+											"// count how many object are int he array (how many projects were retrived)\r",
+											"var count = Object.keys(responseJson).length;\r",
+											"\r",
+											"// Typcial Postman test to ensure that the response header was OK. If it was, set the flag to 'true'\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    try {\r",
+											"        pm.response.to.have.status(200);\r",
+											"        test1Passed = true;\r",
+											"    } catch (err) {\r",
+											"        test1Passed = false;\r",
+											"    }\r",
+											"});\r",
+											"\r",
+											"pm.test(\"The number of environments are greater than zero\", function () {\r",
+											"    try {\r",
+											"        pm.expect(count).to.be.greaterThan(0);\r",
+											"        console.log(\"The number of environments are = \" + count);\r",
+											"        // console.log(\"Responses = \" + JSON.stringify(responseJson));\r",
+											"        test2Passed = true;\r",
+											"    } catch (err) {\r",
+											"        test2Passed = false;\r",
+											"    }\r",
+											"});\r",
+											"\r",
+											"// If both tests pass, then \r",
+											"if (test1Passed && test2Passed) {\r",
+											"    console.log(envIds);\r",
+											"    // Set the envIds as a local variable 'envIds'. The is the working array variable and gets modified as we iterate through the projects.\r",
+											"    pm.variables.set('envIds', envIds);\r",
+											"    // Set the first element of the envIds array as the 'envID` local variable (this is used in the next request to get the project details)\r",
+											"    pm.variables.set(\"envID\", envIds.shift());\r",
+											"    console.log(\"Next Project used: \" + envIds[0]);\r",
+											"};\r",
+											"\r",
+											"console.log(\"**** End Get Multiple Environment Resources TEST ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getmultipleenvsresources?subscriptionId={{subscriptionId}}&starttime={{starttime}}&endtime={{endtime}}&skip={{skip}}&take={{take}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getmultipleenvsresources"
+									],
+									"query": [
+										{
+											"key": "subscriptionId",
+											"value": "{{subscriptionId}}",
+											"description": "Specifies the vanity name or FQDN of a machine, where {machineVanity} is the vanity name or FQDN (e.g. uvo1yg1ocn13278d.vm.cld.dev)."
+										},
+										{
+											"key": "starttime",
+											"value": "{{starttime}}",
+											"description": "Specifies the start of the time range, where {starttime_value} is the start of the time range in the format ISO 8601. For example, \"2017-01-01\""
+										},
+										{
+											"key": "endtime",
+											"value": "{{endtime}}",
+											"description": "Specifies the end of the time range, where {endtime_value} is the end of the time range in the format ISO 8601. For example, “2017-02-01“."
+										},
+										{
+											"key": "skip",
+											"value": "{{skip}}",
+											"description": "Optional. Specifies to skip the first {skip_value} records, where {skip_value} is an integer (default: 0). Can be used iteratively in conjunction with take to view distinct sets of environment records."
+										},
+										{
+											"key": "take",
+											"value": "{{take}}",
+											"description": "Optional. Limits the number of records returned, where {take_value} is the maximum number of records to return. Integer (default: 1000, maximum: 1000)."
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-apiv3envsactionsgetextendedbymachinevanity/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Env by ID Copy",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Env Details PRE-REQUEST SCRIPT ****\");\r",
+											"\r",
+											"let envID = pm.variables.get(\"envID\");\r",
+											"console.log(\"The current envID is : \" + envID);\r",
+											"\r",
+											"console.log(\"**** End GET Env Details PRE-REQUEST SCRIPT ****\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Env Details TEST SCRIPT ****\");\r",
+											"\r",
+											"// Define a variable to containg an array for the list of environment that match the policy\r",
+											"if (pm.variables.has(\"policyMatchedEnvArray\")) {\r",
+											"    var policyMatchedEnvArray = pm.variables.get(\"policyMatchedEnvArray\");\r",
+											"} else {\r",
+											"    var policyMatchedEnvArray = [];\r",
+											"};\r",
+											"\r",
+											"// Retrieve the previously stored local variable 'envIds'\r",
+											"var envIds = pm.variables.get('envIds');\r",
+											"console.log(\"Next Environment used: \" + envIds[0]);\r",
+											"let policyId = pm.variables.get(\"policyId\");\r",
+											"\r",
+											"// And get the JSON\r",
+											"const responseJson = pm.response.json();\r",
+											"\r",
+											"console.log(\"Policy ID to match = \" + policyId);\r",
+											"console.log(\"Policy ID from env = \" + responseJson.policyId);\r",
+											"console.log(\"Env ID from request = \" + responseJson.id);\r",
+											"\r",
+											"// If the PolicyID specificed is assocaited with the environment, then add the envId to an array\r",
+											"if (policyId == responseJson.policyId) {\r",
+											"    console.log(\"Match\");\r",
+											"    policyMatchedEnvArray.push(responseJson.id);\r",
+											"    pm.variables.set(\"policyMatchedEnvArray\", policyMatchedEnvArray);\r",
+											"}\r",
+											"\r",
+											"// If the envIds is an array that has more then 1 element, then\r",
+											"if (Array.isArray(envIds) && envIds.length >= 1) {\r",
+											"    console.log(\"Here\");\r",
+											"    // Set the next request to be \"Get Env by ID Copy\" (thus skipping this request for subsequent environment irerations).\r",
+											"    postman.setNextRequest(\"Get Env by ID Copy\");\r",
+											"    // Pop of the zero element in the 'envIds' array and sets it to the 'envID' local variable. This means element 1 become element 0, element 2 becomes element 1, etc. so we itterate to the next item. The variable 'envID' is not actually used here.\r",
+											"    pm.variables.set(\"envID\", envIds.shift());\r",
+											"\r",
+											"// Else, If the envIds is an array that has 1 element, then\r",
+											"} else if (Array.isArray(envIds) && envIds.length == 0) {\r",
+											"    console.log(\"There\");\r",
+											"    // Set the next request to 'null' to stop a forever loop (this current request will complete).  \r",
+											"    postman.setNextRequest(\"null\");\r",
+											"    // Pop of the zero element in the 'envIds' array and sets it to the 'envID' local variable. This means element 1 become element 0, element 2 becomes element 1, etc. so we itterate to the next item. The variable 'envID' is not actually used here.\r",
+											"    // pm.variables.set(\"envID\", envIds.shift()); \r",
+											"    console.log(\"The envs that mach the policy are: \" + policyMatchedEnvArray)\r",
+											"};\r",
+											"\r",
+											"console.log(\"**** End GET Env Details TEST SCRIPT ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/envs/{{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"{{envID}}"
+									],
+									"query": [
+										{
+											"key": "permission",
+											"value": "{{permission}}",
+											"description": "Optional. Specifies a type of permission to access the environment. Returns an error (status code 500) if the requesting user does not have the specified permission level. Otherwise, returns the environment properties.\n{permission value} can be:\n\n - view. Returns error if the requesting user is not allowed to view the environment.\n - edit. Returns error if the requesting user is not allowed to edit the environment.\n - owner. Returns error if the requesting user is not the owner of the environment.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-envs-id/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "First, we set the policy ID to match within the Pre-request script of this folder.\n\n  \nWe then retrieve a list of active environments in a specified date range using the \"Get Multiple Environment Resources\" request and compile an array of envIDs. We then pass that array into the \"Get Env by ID\" and iterate through, calling the same request for each array element. This process regarding API calls is quite expensive, but I do not believe there is any other way to retrieve the information.\n\n  \nFor each environment ID requested, we match the policy ID of the environment with our match value and create a separate array of environment IDs, which is then outputted in the console.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Define the policy ID that you want to search for",
+									"var policyId = \"POU5sZD4T2yknt3YyWd6dg4g2\";",
+									"// var policyId = \"PO5Pw79CrL0VsELjcOpzgwmA2\";",
+									"",
+									"// Then store it to a local variable",
+									"pm.variables.set('policyId', policyId);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Add multiple users to all projects",
+					"item": [
+						{
+							"name": "Dummy request",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// This is a dummy request used as a bit of a Postman hack \r",
+											"\r",
+											"// When setting `postman.setNextRequest`, it doesn't matter whether you add this to a pre-request script or a test, it ALWAYS runns AFTER the current request finishes!  So the first request in a collection/folder will ALWAYS run for every iteration. \r",
+											"\r",
+											"// For this folder, we only need to run the \"Get Projects (including filters) 2\" request once for the first iteration of the users CSV, so this script forces Postman to bypass the request on subsequent iterations and go directly to the \"Get Projects Details 2\" request.\r",
+											"\r",
+											"iteration= pm.info.iteration;\r",
+											"console.log(\"CSV Iteraction count = \" + iteration);\r",
+											"if (iteration > 0) {\r",
+											"    postman.setNextRequest(\"Get Projects Details 2\");\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://postman-echo.com/get",
+									"protocol": "https",
+									"host": [
+										"postman-echo",
+										"com"
+									],
+									"path": [
+										"get"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Projects (including filters) 2",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Projects TEST ****\");\r",
+											"\r",
+											"// FLages to check if the test passed\r",
+											"let test1Passed, test2Passed;\r",
+											"\r",
+											"// Grab the response from the request\r",
+											"let responses = pm.environment.get('responses');\r",
+											"\r",
+											"// And get the JSON\r",
+											"const responseJson = pm.response.json();\r",
+											"\r",
+											"// Set the projectIds array to contain all the projects from the retrived JSON\r",
+											"const projectIds = responseJson.map(project => project.id);\r",
+											"\r",
+											"// Store the projectIds as a local variable 'storedProjectIds'. This is used later to restore the array for subsquest itterations\r",
+											"pm.variables.set('storedProjectIds', projectIds);\r",
+											"\r",
+											"// count how many object are int he array (how many projects were retrived)\r",
+											"var count = Object.keys(responseJson).length;\r",
+											"\r",
+											"// Typcial Postman test to ensure that the response header was OK. If it was, set the flag to 'true'\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    try {\r",
+											"        pm.response.to.have.status(200);\r",
+											"        test1Passed = true;\r",
+											"    } catch (err) {\r",
+											"        test1Passed = false;\r",
+											"    }\r",
+											"});\r",
+											"\r",
+											"// Typcial Postman test to ensure that at least one project was returned. If it was, set the flag to 'true'\r",
+											"pm.test(\"The number of projects are greater than zero\", function () {\r",
+											"    try {\r",
+											"        pm.expect(count).to.be.greaterThan(0);\r",
+											"        console.log(\"The number of projects are = \" + count);\r",
+											"        // console.log(\"Responses = \" + JSON.stringify(responseJson));\r",
+											"        test2Passed = true;\r",
+											"    } catch (err) {\r",
+											"        test2Passed = false;\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											"\r",
+											"// If both tests pass, then \r",
+											"if (test1Passed && test2Passed) {\r",
+											"    console.log(projectIds);\r",
+											"    // Set the projectIds as a loval variable 'projectIds'. The is the working array variable and gets modified as we iterate through the projects.\r",
+											"    pm.variables.set('projectIds', projectIds);\r",
+											"    // Set the first element of the projectIds array as the 'projectId` local variable (this is used in the next request to get the project details)\r",
+											"    pm.variables.set(\"projectId\", projectIds[0]);\r",
+											"    console.log(\"Next Project used: \" + projectIds[0]);\r",
+											"    \r",
+											"    // pm.variables.set(\"projectId\", NewProjectID);\r",
+											"}\r",
+											"\r",
+											"console.log(\"**** End GET Project TEST ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects"
+									],
+									"query": [
+										{
+											"key": "WhereUserIsProjectManager",
+											"value": "true",
+											"description": "Returns only projects in which the user is a project manager.",
+											"disabled": true
+										},
+										{
+											"key": "WhereUserIsProjectMember",
+											"value": "true",
+											"description": "Returns only projects in which the user is a project member.",
+											"disabled": true
+										},
+										{
+											"key": "WhereUserCanCreateClass",
+											"value": "true",
+											"description": "Returns only projects in which the user is allowed to create a class. The minimum user level allowed to create classes is set per project and can be changed by project manager users.",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Projects Details 2",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Projects Details PRE-REQUEST SCRIPT ****\");\r",
+											"\r",
+											"let projectId = pm.variables.get(\"projectId\");\r",
+											"console.log(\"The current projectId is : \" + projectId);\r",
+											"\r",
+											"console.log(\"**** End GET Project Details PRE-REQUEST SCRIPT ****\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Projects Details TEST ****\");\r",
+											"\r",
+											"// Grab the response from the request\r",
+											"let responses = pm.environment.get('responses');\r",
+											"\r",
+											"// And get the JSON\r",
+											"const responseJson = pm.response.json();\r",
+											"\r",
+											"// Set the teamId variable to contain the first teamId from the the retrived JSON. This is a bit hacky as there may be more that one team.\r",
+											"const teamId = responseJson.teams[0].id;\r",
+											"console.log(\"The current teamId is : \" + teamId);\r",
+											"\r",
+											"// Store the teamId as a local variable 'storedProjectIds'. This is used later to restore the array for subsquest itterations\r",
+											"pm.variables.set('teamId', teamId);\r",
+											"\r",
+											"pm.test(\"Response status is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"/*\r",
+											"pm.test(\"Response JSON has 'hasNonGenericPolicy' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('hasNonGenericPolicy');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canAddPolicy' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canAddPolicy');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canSeeMultipleRegions' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canSeeMultipleRegions');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canInviteOtherUsers' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canInviteOtherUsers');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'multipleUserRolesEnabled' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('multipleUserRolesEnabled');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canUseExternalClouds' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canUseExternalClouds');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canViewExternalCloudsInCreateEnvFlow' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canViewExternalCloudsInCreateEnvFlow');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'teamsInProjectWhereUserCanInvite' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('teamsInProjectWhereUserCanInvite');\r",
+											"    pm.expect(jsonData.teamsInProjectWhereUserCanInvite).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canChooseTeamAndLevelInCreateProjectMemberFlow' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canChooseTeamAndLevelInCreateProjectMemberFlow');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'availableLevelsInCreateProjectMemberFlow' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('availableLevelsInCreateProjectMemberFlow');\r",
+											"    pm.expect(jsonData.availableLevelsInCreateProjectMemberFlow).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'environmentResourceQuota' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('environmentResourceQuota');\r",
+											"    pm.expect(jsonData.environmentResourceQuota).to.be.an('object');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'projectResourceQuota' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('projectResourceQuota');\r",
+											"    pm.expect(jsonData.projectResourceQuota).to.be.an('object');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'subscriptionResourceQuota' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('subscriptionResourceQuota');\r",
+											"    pm.expect(jsonData.subscriptionResourceQuota).to.be.an('object');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'regions' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('regions');\r",
+											"    pm.expect(jsonData.regions).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canCreateFromScratch' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canCreateFromScratch');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canCreateFromBlueprint' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canCreateFromBlueprint');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'canCreateFromEnvTemplate' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('canCreateFromEnvTemplate');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'defaultPolicyForEnvCreation' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('defaultPolicyForEnvCreation');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'teams' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('teams');\r",
+											"    pm.expect(jsonData.teams).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'name' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('name');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'isActive' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('isActive');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'message' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('message');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON has 'id' property\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.have.property('id');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'teamsInProjectWhereUserCanInvite' array elements have 'isDefaultTeam', 'name', and 'id' properties\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    jsonData.teamsInProjectWhereUserCanInvite.forEach(function (team) {\r",
+											"        pm.expect(team).to.have.property('isDefaultTeam');\r",
+											"        pm.expect(team).to.have.property('name');\r",
+											"        pm.expect(team).to.have.property('id');\r",
+											"    });\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'availableLevelsInCreateProjectMemberFlow' array elements are numbers\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    jsonData.availableLevelsInCreateProjectMemberFlow.forEach(function (level) {\r",
+											"        pm.expect(level).to.be.a('number');\r",
+											"    });\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'regions' array elements have 'id', 'name', 'friendlyName', and 'cloudName' properties\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    jsonData.regions.forEach(function (region) {\r",
+											"        pm.expect(region).to.have.property('id');\r",
+											"        pm.expect(region).to.have.property('name');\r",
+											"        pm.expect(region).to.have.property('friendlyName');\r",
+											"        pm.expect(region).to.have.property('cloudName');\r",
+											"    });\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'teams' array elements have 'isDefaultTeam', 'name', and 'id' properties\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    jsonData.teams.forEach(function (team) {\r",
+											"        pm.expect(team).to.have.property('isDefaultTeam');\r",
+											"        pm.expect(team).to.have.property('name');\r",
+											"        pm.expect(team).to.have.property('id');\r",
+											"    });\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'environmentResourceQuota' object properties are numbers or null\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var properties = ['cpuCount', 'diskSizeMB', 'memorySizeMB'];\r",
+											"    properties.forEach(function (property) {\r",
+											"        pm.expect(jsonData.environmentResourceQuota).to.have.property(property);\r",
+											"        var value = jsonData.environmentResourceQuota[property];\r",
+											"        pm.expect(value).to.satisfy(function (val) {\r",
+											"            return typeof val === 'number' || val === null;\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'projectResourceQuota' object properties are numbers or null\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var properties = ['cpuCount', 'diskSizeMB', 'memorySizeMB'];\r",
+											"    properties.forEach(function (property) {\r",
+											"        pm.expect(jsonData.projectResourceQuota).to.have.property(property);\r",
+											"        var value = jsonData.projectResourceQuota[property];\r",
+											"        pm.expect(value).to.satisfy(function (val) {\r",
+											"            return typeof val === 'number' || val === null;\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response JSON 'subscriptionResourceQuota' object properties are numbers or null\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var properties = ['cpuCount', 'diskSizeMB', 'memorySizeMB'];\r",
+											"    properties.forEach(function (property) {\r",
+											"        pm.expect(jsonData.subscriptionResourceQuota).to.have.property(property);\r",
+											"        var value = jsonData.subscriptionResourceQuota[property];\r",
+											"        pm.expect(value).to.satisfy(function (val) {\r",
+											"            return typeof val === 'number' || val === null;\r",
+											"        });\r",
+											"    });\r",
+											"});\r",
+											"*/\r",
+											"//pm.test(\"Response time is less than 200ms\", function () {\r",
+											"//    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+											"//});\r",
+											"\r",
+											"console.log(\"**** End GET Project Details TEST ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{BaseURL}}/projects/{{projectId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"projects",
+										"{{projectId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/project/projects/get-api-v3-projects-id/]()"
+							},
+							"response": []
+						},
+						{
+							"name": "Invite project member 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start POST Invite project member to a project TEST ****\");\r",
+											"\r",
+											"// Retrieve the previously stored local variable 'projectIds'\r",
+											"var projectIds = pm.variables.get('projectIds')\r",
+											"\r",
+											"// If the projectIds is an array that has 0 elements, then\r",
+											"if (Array.isArray(projectIds) && projectIds.length == 0) {\r",
+											"    console.log(\"and Everywhere\");\r",
+											"    // Set projectIds to be the value orginally stored in the 'storedProjectIds' local variable.\r",
+											"    projectIds = pm.variables.get('storedProjectIds'); \r",
+											"    // Reset the 'projectIds' working local variable to be the original array\r",
+											"    pm.variables.set('projectIds', projectIds);\r",
+											"}\r",
+											"\r",
+											"// Reset the 'projectId' to the first element of the 'projectIds' array (which is now the next project to be parsed)\r",
+											"pm.variables.set(\"projectId\", projectIds[0]);\r",
+											"console.log(\"Next Project used: \" + projectIds[0]);\r",
+											"\r",
+											"// Typcial Postman test to ensure that the response header was OK.\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Typcial Postman test to ensure that the response has a value called 'invitationDetailsUrl'\r",
+											"pm.test(\"Login Token is provided\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.invitationDetailsUrl).to.not.be.undefined;\r",
+											"  console.log(responseJson.invitationDetailsUrl);\r",
+											"  // Save the 'invitationDetailsUrl to an environment variable\r",
+											"  pm.environment.set('invitationDetailsUrl', responseJson.invitationDetailsUrl);\r",
+											"});\r",
+											"\r",
+											"// Typcial Postman test to ensure that the response has a value called 'acceptInvitationUrl'\r",
+											"pm.test(\"Invitation URL provided\", function () {\r",
+											"  const responseJson = pm.response.json();\r",
+											"  pm.expect(responseJson.acceptInvitationUrl).to.not.be.undefined;\r",
+											"  console.log(responseJson.acceptInvitationUrl);\r",
+											"  // Save the 'acceptInvitationUrl to an environment variable\r",
+											"  pm.environment.set('acceptInvitationUrl', responseJson.acceptInvitationUrl);\r",
+											"});\r",
+											"\r",
+											"console.log(\"**** End POST Invite project member to a project TEST ****\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start POST Invite project member to a project PRE-REQUEST SCRIPT ****\");\r",
+											"\r",
+											"// Retrieve the previously stored local variable 'projectIds'\r",
+											"var projectIds = pm.variables.get('projectIds');\r",
+											"console.log(\"Current Project used: \" + projectIds[0]);\r",
+											"console.log(projectIds);\r",
+											"\r",
+											"// If the projectIds is an array that has more then 1 element, then\r",
+											"if (Array.isArray(projectIds) && projectIds.length > 1) {\r",
+											"    console.log(\"Here\");\r",
+											"    // Set the next request to be \"Invite project member 2\" (thus skipping this request for subsequent project irerations).\r",
+											"    postman.setNextRequest(\"Get Projects Details 2\");\r",
+											"    // Pop of the zero element in the 'projectIds' array and sets it to the 'currentProjectId' local variable. This means element 1 become element 0, element 2 becomes element 1, etc. so we itterate to the next item. The variable 'currentProjectId' is not actually used here.\r",
+											"    pm.variables.set(\"currentProjectId\", projectIds.shift());\r",
+											"\r",
+											"// Else, If the projectIds is an array that has 1 element, then\r",
+											"} else if (Array.isArray(projectIds) && projectIds.length == 1) {\r",
+											"    console.log(\"There\");\r",
+											"    // Set the next request to 'null' to stop a forever loop (this current request will complete).  \r",
+											"    postman.setNextRequest(\"null\");\r",
+											"    // Pop of the zero element in the 'projectIds' array and sets it to the 'currentProjectId' local variable. This means element 1 become element 0, element 2 becomes element 1, etc. so we itterate to the next item. The variable 'currentProjectId' is not actually used here.\r",
+											"    pm.variables.set(\"currentProjectId\", projectIds.shift()); \r",
+											"}\r",
+											"\r",
+											"console.log(\"**** End POST Invite project member to a project PRE-REQUEST SCRIPT ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{projectMemberEmail}}\",\r\n    \"firstName\": \"{{projectMemberFirstName}}\",\r\n    \"lastName\": \"{{projectMemberLastName}}\",\r\n    \"projectId\": \"{{projectId}}\",\r\n    \"teamId\": \"{{teamId}}\",\r\n    \"userLevel\": {{userLevel}},\r\n    \"suppressEmails\": \"{{suppressEmails}}\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/invitations/actions/inviteprojectmember",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"invitations",
+										"actions",
+										"inviteprojectmember"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/users/invitations/invitations-actions-inviteprojectmember]()"
+							},
+							"response": []
+						}
+					],
+					"description": "For example, to make a user an account manager for a subscription, they must be added as a Project Manager to all projects within that subscription.\n\nYou can retrieve all the projects using the API credentials of a current account manager within a subscription.\n\n**NOTE:** be aware the API account may exist in other subscriptions. It is helpful in this case to ensure that a special account so that they only exist in one subscription.\n\nThere are two sets of iterations.\n\n1. A set of users passed in as a CSV (outer loop)\n2. A retrieved list of projects (inner loop)\n    \n\nWe pass in a CSV containing the names of users that we want to add to all the projects. We will iterate through the users in the CSV using Postman's internal VCSV handling,\n\nFor the first user iteration, the \"Get Projects (including filters) 2\" request is called and will retrieve all the projects available to the API user and store the project IDs as an array. This request is skipped on subsequent iterations of the user's CSV.\n\nThe second request, \"Get Projects Details 2\", retrieves the associated Teams within the project and gets the Team ID. This request has been hard coded to extract the first TeamID in the project, as most projects only have one Team. Things might get interesting if there is  \nmore than one Team!\n\nThe \"Invite project member 2\" request then iterates through the list of project IDs, adds a user to the project at the relevant user level, and signals if an Invite email should be sent. When  \nthe request completes, the \"Get Projects Details 2\" request is called to get the next TeamID for the following project.\n\nExample CSV:\n\n<img src=\"https://content.pstmn.io/6f98f7fc-eec0-4597-9071-1f9be01620fe/aW1hZ2UucG5n\" width=\"752\" height=\"81\">",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Copy class and add students from a CSV",
+					"item": [
+						{
+							"name": "Dummy request 1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// This is a dummy request used as a bit of a Postman hack \r",
+											"\r",
+											"// When setting `postman.setNextRequest`, it doesn't matter whether you add this to a pre-request script or a test, it ALWAYS runns AFTER the current request finishes!  So the first request in a collection/folder will ALWAYS run for every iteration. \r",
+											"\r",
+											"// For this folder, we need to run the \"Get Classes\", \"Get Class Details 1\" and \"Create a Class 1\" requests once for the first iteration of the users CSV, so this script forces Postman to bypass the request on subsequent iterations and go directly to the \"Add student to class 1\" request.\r",
+											"\r",
+											"iteration= pm.info.iteration;\r",
+											"console.log(\"CSV Iteraction count = \" + iteration);\r",
+											"if (iteration > 0) {\r",
+											"    postman.setNextRequest(\"Add student to class 1\");\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://postman-echo.com/get",
+									"protocol": "https",
+									"host": [
+										"postman-echo",
+										"com"
+									],
+									"path": [
+										"get"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Classes 1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Retrieve the search critera we will use to get the class details to modify. \r",
+											"//const ClassSearchCritera = 'Dummy Class - Jabba';\r",
+											"const ClassSearchCritera = pm.variables.get('ClassSearchCritera');\r",
+											"\r",
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    pm.expect(pm.response.json()).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Search for name = the viariable 'ClassSearchCritera' in the response array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var classObj = jsonData.find(function (item) {\r",
+											"        return item.name === ClassSearchCritera;\r",
+											"    });\r",
+											"    pm.expect(classObj).to.exist;\r",
+											"    // pm.variables.set(\"classObj\", classObj);\r",
+											"    // Set the classId Env Variable ready for the next request to get its details\r",
+											"    pm.environment.set(\"classId\", classObj.id);\r",
+											"    console.log(classObj);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-class/](https://docs.cloudshare.com/rest-api/v3/training/class/get-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Class Details 1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Store the entire response JSON in an environment or global variable\r",
+											"var responseJsonClass = pm.response.json();\r",
+											"pm.environment.set(\"responseJsonClass\", JSON.stringify(responseJsonClass));\r",
+											"console.log(responseJsonClass)\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-class/](https://docs.cloudshare.com/rest-api/v3/training/class/get-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Create a Class 1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Get the JSON from the variable responseJsonClass\r",
+											"var responseJsonClass = JSON.parse(pm.variables.get(\"responseJsonClass\"));\r",
+											"\r",
+											"// Update properties in responseJsonClass\r",
+											"responseJsonClass.name = pm.variables.get(\"NewClassName\");\r",
+											"responseJsonClass.startDate = pm.variables.get(\"ClassStartDate\");\r",
+											"responseJsonClass.endDate = pm.variables.get(\"ClassEndDate\");\r",
+											"\r",
+											"// Delete unused paramaters\r",
+											"delete responseJsonClass.properties;\r",
+											"delete responseJsonClass.isUsingClassTypes;\r",
+											"delete responseJsonClass.blueprintToken;\r",
+											"delete responseJsonClass.experienceType;\r",
+											"delete responseJsonClass.creatorName;\r",
+											"delete responseJsonClass.creatorEmail;\r",
+											"delete responseJsonClass.instructorMail;\r",
+											"delete responseJsonClass.showPermitAccessToNonRegisteredStudent;\r",
+											"delete responseJsonClass.allowEditDefaultsWhenPermitAccessToNonRegistered;\r",
+											"delete responseJsonClass.showMaxStudentsField;\r",
+											"delete responseJsonClass.enableEarlyAccess;\r",
+											"delete responseJsonClass.singleUseHotStandbysToPrepare;\r",
+											"delete responseJsonClass.singleUseHotStandbysToPrepareWhenPredictorIgnored;\r",
+											"delete responseJsonClass.isPredictorEnabled;\r",
+											"delete responseJsonClass.isUnlimitedStudents;\r",
+											"delete responseJsonClass.isEvent;\r",
+											"delete responseJsonClass.reportConnectivityIssueForStudent;\r",
+											"delete responseJsonClass.reportInstructorEnvFreeze;\r",
+											"delete responseJsonClass.maximumNumberOfLiveThumbnails;\r",
+											"delete responseJsonClass.externalResourcesUsers;\r",
+											"delete responseJsonClass.showExternalCloudSection;\r",
+											"delete responseJsonClass.thumbnailsIntervalSeconds;\r",
+											"delete responseJsonClass.refreshStudentsIntervalSeconds;\r",
+											"delete responseJsonClass.lateClassEditThresholdMinutes;\r",
+											"delete responseJsonClass.createDate;\r",
+											"delete responseJsonClass.multipleRegionsSupported;\r",
+											"delete responseJsonClass.moreInfo;\r",
+											"delete responseJsonClass.externalResourcesData;\r",
+											"delete responseJsonClass.externalClouds;\r",
+											"delete responseJsonClass.audioVideoMeetingId;\r",
+											"delete responseJsonClass.ltiLaunchUrl;\r",
+											"delete responseJsonClass.ltiSharedSecret;\r",
+											"delete responseJsonClass.earlyAccessTimeInMinutes;\r",
+											"delete responseJsonClass.extraInstructorVupIds;\r",
+											"delete responseJsonClass.policyName;\r",
+											"delete responseJsonClass.policyExternalId;\r",
+											"delete responseJsonClass.blueprintName;\r",
+											"delete responseJsonClass.cloudName;\r",
+											"delete responseJsonClass.regionsIds;\r",
+											"delete responseJsonClass.regionName;\r",
+											"delete responseJsonClass.projectName;\r",
+											"delete responseJsonClass.teamId;\r",
+											"delete responseJsonClass.teamName;\r",
+											"delete responseJsonClass.creatorUserId;\r",
+											"delete responseJsonClass.instructorName;\r",
+											"delete responseJsonClass.defaultDurationInMinutes;\r",
+											"delete responseJsonClass.showCourseAddressField;\r",
+											"delete responseJsonClass.authenticationMethod;\r",
+											"delete responseJsonClass.ssoConnector;\r",
+											"delete responseJsonClass.instructors;\r",
+											"delete responseJsonClass.pollAudioVideoMeetingIdIntervalSeconds;\r",
+											"delete responseJsonClass.maxConcurrentStudents;\r",
+											"delete responseJsonClass.opportunity;\r",
+											"delete responseJsonClass.instructorEmail;\r",
+											"delete responseJsonClass.instructorUserId;\r",
+											"delete responseJsonClass.timeZoneName;\r",
+											"delete responseJsonClass.startDateUtcOffsetMinutes;\r",
+											"delete responseJsonClass.endDateUtcOffsetMinutes;\r",
+											"delete responseJsonClass.status;\r",
+											"delete responseJsonClass.shortId;\r",
+											"delete responseJsonClass.studentLoginUrl;\r",
+											"delete responseJsonClass.id;\r",
+											"\r",
+											"console.log(responseJsonClass);\r",
+											"// Set the updated JSON as the request body\r",
+											"//pm.request.body.raw = JSON.stringify(responseJsonClass);\r",
+											"pm.variables.set('req_body', JSON.stringify(responseJsonClass));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var responseJsonClass = pm.response.json();\r",
+											"pm.environment.set(\"classId\", responseJsonClass.id);\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{req_body}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class/](https://docs.cloudshare.com/rest-api/v3/training/class/post-api-v3-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Add student to class 1",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{studentEmail1}}\",\r\n    \"firstName\": \"{{studentFirstName1}}\",\r\n    \"lastName\": \"{{studentLastName1}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/students/post-api-v3-class-id-students/](https://docs.cloudshare.com/rest-api/v3/training/students/post-api-v3-class-id-students/)"
+							},
+							"response": []
+						}
+					],
+					"description": "Creating a training class using the CloudShare API can be a complex process as multiple parameters are required, which may require several API calls. Perhaps a more straightforward approach could be to copy the details from an existing \"dummy or template\" class with the correct pre-configured information (including things like the Project, Blueprint, Instructor, Policy, etc.), then update the name of the class and the date for which it will run.\n\nIn this folder, we:\n\n1. Use a dummy request just to hack Postman to direct the 2nd iteration requests appropriately.\n2. Gather the classes available to the API user (using the \"Get Classes 1\" request), and extract the relevant class details that match our criteria (the name of a dummy class), which is achieved using Javascript in the \"Get Classes 1\" Tests section.\n    \n3. Retrieve the class details using the \"Get Class Details 1\" request, using the ClassID found in the previous step.\n4. Create a new class using the \"Create a Class 1\" request, based on the details from the dummy class retrieved in step 2, but with updated information. Many of the parameters retrieved in step 2 are not required in the request body for this POST, so they are deleted. Others (such as a new class name and the start and end date) are modified and updated.\n5. Lastly, we enrol a student into the class using an iteration of the CSV.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Define the search critera we will use to get the class details to modify. ",
+									"const ClassSearchCritera = \"Dummy Class - Jabba\";",
+									"var NewClassName = \"My New Class via Postman\";",
+									"",
+									"// The date and time at which to start the class, in MM/DD/YYYY hh:MM AM/PM format.",
+									"var ClassStartDate = \"10/01/2023 09:00 AM\";",
+									"var ClassEndDate = \"10/05/2023 09:00 AM\";",
+									"",
+									"pm.variables.set('ClassSearchCritera', ClassSearchCritera);",
+									"pm.variables.set('NewClassName', NewClassName);",
+									"pm.variables.set('ClassStartDate', ClassStartDate);",
+									"pm.variables.set('ClassEndDate', ClassEndDate);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Return a list of current student environments for a class",
+					"item": [
+						{
+							"name": "Get Classes 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Classes TESTS ****\");\r",
+											"\r",
+											"const ClassSearchCritera = 'Dummy Class - Jabba';\r",
+											"//const ClassSearchCritera = pm.variables.get('ClassSearchCritera');\r",
+											"\r",
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    pm.expect(pm.response.json()).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Search for name = the viariable 'ClassSearchCritera' in the response array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var classObj = jsonData.find(function (item) {\r",
+											"        return item.name === ClassSearchCritera;\r",
+											"    });\r",
+											"    pm.expect(classObj).to.exist;\r",
+											"    pm.variables.set(\"classObj\", classObj);\r",
+											"    pm.environment.set(\"classId\", classObj.id);\r",
+											"    console.log(classObj);\r",
+											"});\r",
+											"\r",
+											"console.log(\"**** End GET Classes TESTS ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-class/](https://docs.cloudshare.com/rest-api/v3/training/class/get-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Students 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Students TESTS ****\");\r",
+											"\r",
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    pm.expect(pm.response.json()).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"// Setup a variable to contain the the students that have a valid EnvID\r",
+											"var activeStudentEnvs = [];\r",
+											"\r",
+											"// Iterate through the JSON response...\r",
+											"_.each(pm.response.json(), (item) => {\r",
+											"    // ANd if the student as a valid envID...\r",
+											"    if (item.envId !== null) {\r",
+											"        console.log(item);\r",
+											"        // Save the student object to the array\r",
+											"        activeStudentEnvs.push(item);\r",
+											"    }\r",
+											"})\r",
+											"\r",
+											"console.log(activeStudentEnvs);\r",
+											"\r",
+											"// Save the array to a local variable\r",
+											"pm.variables.set(\"activeStudentEnvs\", JSON.stringify(activeStudentEnvs));\r",
+											"\r",
+											"console.log(\"**** End GET Students TESTS ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students?isFull={{isFull}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students"
+									],
+									"query": [
+										{
+											"key": "isFull",
+											"value": "{{isFull}}",
+											"description": "Boolean.\ntrue. Returns details of the VMs in each student’s environment as well as other details\nfalse. Returns a shorter list of details, which does not include the VM details"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/](https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/)"
+							},
+							"response": []
+						}
+					],
+					"description": "To get the environments for all students in a class, we need the Class ID, and to get the Class ID, we will use a text name of the class from a list of classes visible to the API user (I have added this as a const within the Pre-request script of this folder). Annoyingly, there is no simple way to filter this list by project! Also be aware that class names are NOT unique, so you could match multiple classes – perhaps this requires including some other kind of match, such as date, status, or whatever.\n\nThen we use the `GET /api/v3/class/ID/students` endpoint to get all the student and their associated environment IDs",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const classNameToMatch = '';",
+									"",
+									"pm.variables.set('classNameToMatch', classNameToMatch);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Return the running time of each current student environments for a class",
+					"item": [
+						{
+							"name": "Get Classes 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Classes TESTS ****\");\r",
+											"\r",
+											"const ClassSearchCritera = 'Dummy Class - Jabba';\r",
+											"//const ClassSearchCritera = pm.variables.get('ClassSearchCritera');\r",
+											"\r",
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    pm.expect(pm.response.json()).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Search for name = the viariable 'ClassSearchCritera' in the response array\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var classObj = jsonData.find(function (item) {\r",
+											"        return item.name === ClassSearchCritera;\r",
+											"    });\r",
+											"    pm.expect(classObj).to.exist;\r",
+											"    pm.variables.set(\"classObj\", classObj);\r",
+											"    pm.environment.set(\"classId\", classObj.id);\r",
+											"    console.log(classObj);\r",
+											"});\r",
+											"\r",
+											"console.log(\"**** End GET Classes TESTS ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class"
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-class/](https://docs.cloudshare.com/rest-api/v3/training/class/get-class/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Students 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Students TESTS ****\");\r",
+											"\r",
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response is an array\", function () {\r",
+											"    pm.expect(pm.response.json()).to.be.an('array');\r",
+											"});\r",
+											"\r",
+											"// Setup a variable to contain the the students that have a valid EnvID\r",
+											"var activeStudentEnvs = [];\r",
+											"\r",
+											"// Iterate through the JSON response...\r",
+											"_.each(pm.response.json(), (item) => {\r",
+											"    // ANd if the student as a valid envID...\r",
+											"    if (item.envId !== null) {\r",
+											"        console.log(item);\r",
+											"        // Save the student object to the array\r",
+											"        activeStudentEnvs.push(item);\r",
+											"    }\r",
+											"})\r",
+											"\r",
+											"console.log(activeStudentEnvs);\r",
+											"\r",
+											"// Save the array to a local variable\r",
+											"pm.variables.set(\"activeStudentEnvs\", JSON.stringify(activeStudentEnvs));\r",
+											"\r",
+											"// And setup the envID for the next request\r",
+											"pm.environment.set(\"envID\", activeStudentEnvs[0].envId);\r",
+											"\r",
+											"console.log(\"**** End GET Students TESTS ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BaseURL}}/class/{{classId}}/students?isFull={{isFull}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"class",
+										"{{classId}}",
+										"students"
+									],
+									"query": [
+										{
+											"key": "isFull",
+											"value": "{{isFull}}",
+											"description": "Boolean.\ntrue. Returns details of the VMs in each student’s environment as well as other details\nfalse. Returns a shorter list of details, which does not include the VM details"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/](https://docs.cloudshare.com/rest-api/v3/training/class/get-detailed/)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Env Resources 2",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Env Resources PRE-REQUEST ****\");\r",
+											"\r",
+											"\r",
+											"console.log(\"**** End GET Env Resources PRE-REQUEST ****\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"**** Start GET Env Resources TESTS ****\");\r",
+											"\r",
+											"pm.test(\"Response status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Retrieve the previously stored local variable 'activeStudentEnvs'\r",
+											"var activeStudentEnvs = JSON.parse(pm.variables.get(\"activeStudentEnvs\"));\r",
+											"//console.log(activeStudentEnvs);\r",
+											"\r",
+											"// Retrive the current JSON response\r",
+											"const responseJson = pm.response.json();\r",
+											"\r",
+											"// If the activeStudentEnvs is an array, then\r",
+											"if (Array.isArray(activeStudentEnvs)) {\r",
+											"    console.log(\"The Students email is: \" + activeStudentEnvs[0].email);\r",
+											"    console.log(\"The Students EnvID is: \" + activeStudentEnvs[0].envId);\r",
+											"// else the last element is a simple JSON object\r",
+											"} else {\r",
+											"    console.log(\"The Students email is: \" + activeStudentEnvs.email);\r",
+											"    console.log(\"The Students EnvID is: \" + activeStudentEnvs.envId); \r",
+											"}\r",
+											"console.log(\"The Students Environment Runtime is: \" + responseJson.totalRuntimeHours);\r",
+											"\r",
+											"// If the activeStudentEnvs is an array that has more then 1 element, then\r",
+											"if (Array.isArray(activeStudentEnvs) && activeStudentEnvs.length > 1) {\r",
+											"    console.log(\"Here\");\r",
+											"    // Set the next request to be \"Invite project member 2\" (thus skipping this request for subsequent project irerations).\r",
+											"    postman.setNextRequest(\"Get Env Resources 2\");\r",
+											"    // Pop of the zero element in the 'activeStudentEnvs' array and sets it to the 'activeStudentEnvs' local variable. This means element 1 become element 0, element 2 becomes element 1, etc. so we itterate to the next item. \r",
+											"    activeStudentEnvs.shift();\r",
+											"    \r",
+											"    pm.variables.set(\"activeStudentEnvs\", JSON.stringify(activeStudentEnvs));\r",
+											"    \r",
+											"    // Setup the next snvID fromt the activeStudentEnvs array \r",
+											"    pm.environment.set(\"envID\", activeStudentEnvs[0].envId);\r",
+											"} \r",
+											"\r",
+											"console.log(\"**** End GET Env Resources TESTS ****\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "{{auth-header}}",
+										"type": "text",
+										"description": "CloudShare authentication protocol is based on OAuth 1, and requires the Authorization request header for each request in the following format:"
+									}
+								],
+								"url": {
+									"raw": "{{BaseURL}}/envs/actions/getenvresources?envId={{envID}}",
+									"host": [
+										"{{BaseURL}}"
+									],
+									"path": [
+										"envs",
+										"actions",
+										"getenvresources"
+									],
+									"query": [
+										{
+											"key": "envId",
+											"value": "{{envID}}",
+											"description": "The ID of the environment. To retrieve environment IDs, use GET /api/v3/envs"
+										}
+									]
+								},
+								"description": "[https://docs.cloudshare.com/rest-api/v3/environments/envs/get-apiv3envsactionsgetenvresources/]()"
+							},
+							"response": []
+						}
+					],
+					"description": "The set of API calls expands on the \"Return a list of current student environments for a class\" folder. Once a list of current students that have environment is retuned, we use that list and iterate over it and GET the Env Resources.\n\nThus we:\n\n1. Get Classes\n    1. Then parse the returned JSON to match a course by name and extract the course ID\n2. Get the students from the class (this includes any Environment details associated with the student)\n    1. Iterate through the students that have an valid EnvID to\n    2. Get the Env resource details of the environment associated with the student\n        1. And pull the `totalRuntimeHours`\n\nThe results are printed to the console, but I guess you could add them to the Student JSON and save somewhere.",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const classNameToMatch = '';",
+									"",
+									"pm.variables.set('classNameToMatch', classNameToMatch);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				}
+			],
+			"description": "A collection of modified requests and short sequencies to perform some common tasks within CloudShare. These simply show some possibilities, and to not outline production level code."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// **** Shared Pre-request stuff *****",
+					"",
+					"// The following checks need to be completed BEFORE the authorisation header is set otherwise the variable updates will not work properly and you need to replay the request.",
+					"",
+					"//Check if Env ID has 'EN' in front of it and add it if not:",
+					"const envID = pm.environment.get(\"envID\");",
+					"if (!(envID.startsWith(\"EN\"))) {",
+					"    pm.environment.set('envID', \"EN\" + envID);",
+					"};",
+					"",
+					"//Check if Policy ID has 'PO' in front of it and add it if not:",
+					"const policyId = pm.environment.get('policyId');",
+					"if (!(policyId.startsWith(\"PO\"))) {",
+					"    pm.environment.set('policyId', \"PO\" + policyId);",
+					"};",
+					"",
+					"",
+					"",
+					"// **** Setup Pre-request Authentication ****",
+					"",
+					"// Function to create a random alpahnumeric character using the {{$randomAlphaNumeric}} dynamic variable ",
+					"function randomString(length=1) {",
+					"    let randomString = \"\";",
+					"    for (let i = 0; i < length; i++){",
+					"        randomString += pm.variables.replaceIn(\"{{$randomAlphaNumeric}}\");",
+					"    }",
+					"    return randomString;",
+					"}",
+					"",
+					"// Grab the API ID and API key set within an enviroment scope",
+					"const API_ID = pm.variables.get(\"API_ID\");",
+					"const API_KEY = pm.variables.get(\"API_KEY\");",
+					"",
+					"// Grab new token of 10 characters from the randomString function",
+					"const STRING_LEN = 10",
+					"var token = randomString(STRING_LEN);",
+					"",
+					"",
+					"// URL Encode the request URL",
+					"const EncodedURL = encodeURI(pm.variables.replaceIn(pm.request.url));",
+					"",
+					"// Grab an epoch timestamp based on the {{$timestamp}} dynamic variable.",
+					"var timestamp = pm.variables.replaceIn('{{$timestamp}}');",
+					"",
+					"// Debug",
+					"console.log(pm.request.url.getPathWithQuery());",
+					"",
+					"// Concatonate various strings to create the HMAC signature ",
+					"// (see https://docs.cloudshare.com/rest-api/v3/overview/using-the-rest-api/ - \"The HMAC Signature\" ",
+					"const HMACString = API_KEY + EncodedURL + timestamp + token;",
+					"",
+					"var hmac = CryptoJS.SHA1(HMACString).toString();",
+					"",
+					"// Sets the Authorization Request Headers (see documentation URLabove) and save them to an enviroment vaaiable to be used with the requests",
+					"AUTH_PARAM = \"userapiid:\" + API_ID + \";timestamp:\" + timestamp + \";token:\" + token + \";hmac:\" + hmac",
+					"pm.environment.set('auth-header', \"cs_sha1 \"+ AUTH_PARAM);",
+					"",
+					"// Debug",
+					"// console.log(API_KEY);",
+					"console.log(EncodedURL);",
+					"",
+					"// **** Complete Pre-request Authentication ****"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BaseURL",
+			"value": "https://use.cloudshare.com/api/v3"
+		}
+	]
+}

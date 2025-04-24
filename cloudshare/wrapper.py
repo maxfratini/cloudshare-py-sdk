@@ -95,7 +95,7 @@ def create_env_from_bp_using_names(dct):
     new_dct['itemsCart'][0]['blueprintId'] = get_bp_id(new_dct['environment']['projectId'],
                                                        new_dct['itemsCart'][0]['blueprintId'])
 
-    if dct['itemsCart'][0].get('snapshotId'):
+    if dct['itemsCart'][0].cs_get('snapshotId'):
         new_dct['itemsCart'][0]['snapshotId'] = get_snapshot_id(
                                                        dct['environment']['projectId'],
                                                        dct['itemsCart'][0]['blueprintId'],
@@ -275,13 +275,13 @@ def put(path, queryParams=None, content=None):
 
 
 def request(method, path, queryParams=None, content=None):
-    res = get_requester().request(hostname=os.environ.get('CLOUDSHARE_HOSTNAME', "use.cloudshare.com"),
-                                  method=method,
-                                  apiId=os.environ.get('CLOUDSHARE_API_ID'),
-                                  apiKey=os.environ.get('CLOUDSHARE_API_KEY'),
-                                  path=path,
-                                  queryParams=queryParams,
-                                  content=content)
+    res = get_requester().cs_request(hostname=os.environ.get('CLOUDSHARE_HOSTNAME', "use.cloudshare.com"),
+                                     method=method,
+                                     apiId=os.environ.get('CLOUDSHARE_API_ID'),
+                                     apiKey=os.environ.get('CLOUDSHARE_API_KEY'),
+                                     path=path,
+                                     queryParams=queryParams,
+                                     content=content)
 
     if res.status // 100 != 2:
         print(res.status, res.content)

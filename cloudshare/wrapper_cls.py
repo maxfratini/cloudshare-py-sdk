@@ -93,7 +93,7 @@ class Wrapper(object):
         new_dct['itemsCart'][0]['blueprintId'] = self.get_bp_id(new_dct['environment']['projectId'],
                                                            new_dct['itemsCart'][0]['blueprintId'])
 
-        if dct['itemsCart'][0].get('snapshotId'):
+        if dct['itemsCart'][0].cs_get('snapshotId'):
             new_dct['itemsCart'][0]['snapshotId'] = self.get_snapshot_id(
                 dct['environment']['projectId'],
                 dct['itemsCart'][0]['blueprintId'],
@@ -277,13 +277,13 @@ class Wrapper(object):
         return self.request('DELETE', path)
 
     def request(self, method, path, queryParams=None, content=None):
-        res = get_requester().request(hostname=self.hostname,
-                                      method=method,
-                                      apiId=self.api_id,
-                                      apiKey=self.api_key,
-                                      path=path,
-                                      queryParams=queryParams,
-                                      content=content)
+        res = get_requester().cs_request(hostname=self.hostname,
+                                         method=method,
+                                         apiId=self.api_id,
+                                         apiKey=self.api_key,
+                                         path=path,
+                                         queryParams=queryParams,
+                                         content=content)
 
         if res.status // 100 != 2:
             print(res.status, res.content)

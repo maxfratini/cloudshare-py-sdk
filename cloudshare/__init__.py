@@ -14,13 +14,13 @@
 
 
 def req(hostname, method, apiId, apiKey, path="", queryParams=None, content=None):
-    return _get_requester().request(hostname=hostname,
-                                    method=method,
-                                    apiId=apiId,
-                                    apiKey=apiKey,
-                                    path=path,
-                                    queryParams=queryParams,
-                                    content=content)
+    return _get_requester().cs_request(hostname=hostname,
+                                       method=method,
+                                       apiId=apiId,
+                                       apiKey=apiKey,
+                                       path=path,
+                                       queryParams=queryParams,
+                                       content=content)
 
 
 def _get_requester():
