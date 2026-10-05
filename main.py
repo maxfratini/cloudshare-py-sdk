@@ -15,14 +15,14 @@ executable. Nuitka does not cross-compile, so each target OS needs its own
 runner -- see .github/workflows/build.yml.
 """
 
-# --file-version/--product-version take a Windows *resource* version: up to four
-# integers joined by commas ("0,2,0,0"), not a PEP 440 string. The tempting
-# {VERSION}/{FILE_VERSION}/{PRODUCT_VERSION} placeholders do NOT work here --
-# those are runtime constants for embedding in compiled source, and Nuitka
-# rejects them as option arguments. So derive the value ourselves. A
-# nuitka-project-set must evaluate to a str/int/float/bool, hence the single
-# expression producing the final string.
-# nuitka-project-set: CS_WIN_VERSION = ",".join(str(n) for n in (tuple(int(p) for p in __import__("mxcloudshare").__version__.split(".") if p.isdigit()) + (0, 0, 0, 0))[:4])
+# --file-version/--product-version take a dot-separated numeric version of at
+# most four parts, zero-padded to four by Nuitka, each part 0-65535 -- so the
+# package version already fits. The tempting {VERSION}/{FILE_VERSION}/
+# {PRODUCT_VERSION} placeholders do NOT work here: those are runtime constants
+# for embedding in compiled source, and Nuitka rejects them as option
+# arguments. So derive the value ourselves. A nuitka-project-set must evaluate
+# to a str/int/float/bool, hence a single expression yielding the final string.
+# nuitka-project-set: CS_WIN_VERSION = ".".join(str(n) for n in tuple(int(p) for p in __import__("mxcloudshare").__version__.split(".") if p.isdigit())[:4])
 #
 # nuitka-project: --mode=standalone
 # nuitka-project: --output-dir=dist
