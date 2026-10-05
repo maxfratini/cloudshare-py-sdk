@@ -38,8 +38,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # macos-13 was retired 2025-12-04 and macos-14 on 2026-11-02. Retired
+      # labels do not fail -- they queue forever, which silently wedges the whole
+      # matrix -- so use macos-15 (arm64) plus macos-15-intel for x86_64, the
+      # last Intel image (available until ~August 2027).
       matrix:
-        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-15, macos-15-intel, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -68,8 +72,13 @@ jobs:
         shell: bash
         run: |
           BIN="dist/main.dist/mxcloudshare"
-          [ -f "$BIN.exe" ] && BIN="$BIN.exe"
-          chmod +x "$BIN"
+          if [ -f "$BIN.exe" ]; then BIN="$BIN.exe"; fi
+          if [ ! -f "$BIN" ]; then
+            echo "::error::expected a binary at dist/main.dist, found:"
+            ls -R dist || true
+            exit 1
+          fi
+          chmod +x "$BIN" || true
           "$BIN" --help
           "$BIN" --version
 

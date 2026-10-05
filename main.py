@@ -15,6 +15,15 @@ executable. Nuitka does not cross-compile, so each target OS needs its own
 runner -- see .github/workflows/build.yml.
 """
 
+# --file-version/--product-version take a Windows *resource* version: up to four
+# integers joined by commas ("0,2,0,0"), not a PEP 440 string. The tempting
+# {VERSION}/{FILE_VERSION}/{PRODUCT_VERSION} placeholders do NOT work here --
+# those are runtime constants for embedding in compiled source, and Nuitka
+# rejects them as option arguments. So derive the value ourselves. A
+# nuitka-project-set must evaluate to a str/int/float/bool, hence the single
+# expression producing the final string.
+# nuitka-project-set: CS_WIN_VERSION = ",".join(str(n) for n in (tuple(int(p) for p in __import__("mxcloudshare").__version__.split(".") if p.isdigit()) + (0, 0, 0, 0))[:4])
+#
 # nuitka-project: --mode=standalone
 # nuitka-project: --output-dir=dist
 # nuitka-project: --output-filename=mxcloudshare
@@ -30,8 +39,8 @@ runner -- see .github/workflows/build.yml.
 # nuitka-project: --assume-yes-for-downloads
 # nuitka-project-if: {OS} == "Windows":
 #    nuitka-project: --windows-console-mode=force
-#    nuitka-project: --file-version={FILE_VERSION}
-#    nuitka-project: --product-version={PRODUCT_VERSION}
+#    nuitka-project: --file-version={CS_WIN_VERSION}
+#    nuitka-project: --product-version={CS_WIN_VERSION}
 #
 # NB: --macos-create-app-bundle sets the compilation mode itself, so it cannot
 # live here alongside --mode. Use `make dist-bundle` for the .app variant.
