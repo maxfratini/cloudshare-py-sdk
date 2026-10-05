@@ -1,7 +1,36 @@
-*.egg-info
-*.pyc
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# uv
+.uv/
+
+# Build / packaging
+build/
+dist/
+*.dist-info/
+
+# Test / lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Credentials — never commit these
+cloudshare.keys
+cloudshare.env
+.env
+.env.*
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
 *.swp
 .ropeproject
-build
-dist/
-MANIFEST
+
+# Stray scratch output
+/output.txt

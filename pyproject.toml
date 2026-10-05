@@ -1,0 +1,84 @@
+[project]
+name = "mxcloudshare"
+version = "0.2.0"
+description = "CloudShare REST API v3 automation CLI and SDK."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
+authors = [{ name = "Max Fratini" }]
+keywords = ["cloudshare", "cli", "sdk", "automation", "vm", "training"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "cyclopts>=3.0",
+    "pandas>=2.0",
+    "python-dotenv>=1.0",
+    "rich>=13.0",
+    "typing-extensions>=4.9",
+]
+
+[project.scripts]
+mxcloudshare = "mxcloudshare.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/cloudshare/cloudshare-py-sdk"
+Upstream = "https://github.com/cloudshare/cloudshare-py-sdk"
+
+[dependency-groups]
+dev = [
+    "nuitka>=2.0",
+    "ordered-set>=4.1",
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "zstandard>=0.23",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Only the importable package ships; tests/ examples/ postman/ stay out of the wheel.
+[tool.hatch.build.targets.wheel]
+packages = ["mxcloudshare"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/mxcloudshare",
+    "/tests",
+    "/examples",
+    "/main.py",
+    "/README.md",
+    "/LICENSE.txt",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+# Correctness-focused only. UP/B would demand semantic rewrites of the
+# canonical CLI (StrEnum bases, None instead of mutable defaults); those are
+# deliberately left for a dedicated pass rather than swept in by a lint run.
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+# NOTE: build options for the standalone binary deliberately do NOT live in a
+# [tool.nuitka] table here. Nuitka only reads that table when it runs as a
+# package build backend (uv_build_backend / setuptools / poetry), not for a
+# plain `nuitka main.py`. The options are the `# nuitka-project` comments at the
+# top of main.py, which also gives us the per-OS conditionals.

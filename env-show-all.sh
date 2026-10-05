@@ -1,11 +1,16 @@
-# This script is used to show all environments in the cloudshare service.
-# It requires the mxcloudshare.py script to be in the same directory.
 #!/bin/bash
-# Check if the mxcloudshare.py script exists
-if [ ! -f "./mxcloudshare.py" ]; then
-    echo "Error: mxcloudshare.py script not found in the current directory."
-    exit 1
-fi
+# Show all environments in the CloudShare service.
+#
+# Requires the `mxcloudshare` CLI on PATH (uv run --project . / uv tool install /
+# or the compiled binary in dist/). Credentials come from ./cloudshare.keys or
+# from CLOUDSHARE_API_ID / CLOUDSHARE_API_KEY in the environment.
+#
+# Note: cyclopts wants the command name BEFORE the options, i.e.
+#   mxcloudshare env-show-all --outformat table
+set -euo pipefail
 
-#./mxcloudshare.py --loglevel debug --outformat table --keyfile ./cloudshare.keys env-show-all
-./mxcloudshare.py --outformat table --keyfile ./cloudshare.keys env-show-all
+exec mxcloudshare env-show-all \
+    --outformat table \
+    --tablewidth 120 \
+    --keyfile ./cloudshare.keys \
+    "$@"
