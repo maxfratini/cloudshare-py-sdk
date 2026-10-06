@@ -2,7 +2,10 @@ name: build
 
 on:
   push:
-    branches: [main]
+    # Default branch is `master`; `main` is kept in case it is renamed back.
+    # Without an entry matching the default branch, direct pushes to it are
+    # never verified -- only PRs and tags would trigger a build.
+    branches: [master, main]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
