@@ -1,16 +1,21 @@
-# This script is used to suspend an environment in the cloudshare service.
-# It requires the mxcloudshare.py script to be in the same directory.
 #!/bin/bash
-# Check if the mxcloudshare.py script exists
-if [ ! -f "./mxcloudshare.py" ]; then
-    echo "Error: mxcloudshare.py script not found in the current directory."
-    exit 1
-fi
-# Check if the user provided an environment ID
-if [ -z "$1" ]; then
+# Suspend an environment in the CloudShare service.
+#
+# Requires the `mxcloudshare` CLI on PATH (uv run --project . / uv tool install /
+# or the compiled binary in dist/). Credentials come from ./cloudshare.keys or
+# from CLOUDSHARE_API_ID / CLOUDSHARE_API_KEY in the environment.
+#
+# Note: cyclopts wants the command name BEFORE the options, i.e.
+#   mxcloudshare env-suspend --envid ID --outformat table
+set -euo pipefail
+
+if [ -z "${1:-}" ]; then
     echo "Suspend an environment in the cloudshare service."
     echo "Usage: $0 <environment_id>"
     exit 1
 fi
-#./mxcloudshare.py --loglevel debug --outformat table --keyfile ./cloudshare.keys env-suspend --envid "$1"
-./mxcloudshare.py --outformat table --keyfile ./cloudshare.keys env-suspend --envid "$1"
+
+exec mxcloudshare env-suspend --envid "$1" \
+    --outformat table \
+    --keyfile ./cloudshare.keys \
+    "${@:2}"
