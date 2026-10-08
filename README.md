@@ -44,12 +44,41 @@ The command name comes **before** the options, because the CLI is built with
 [cyclopts](https://cyclopts.readthedocs.io/):
 
 ```bash
+# Environment actions
 mxcloudshare env-show-all --outformat table --tablewidth 120
-mxcloudshare env-suspend --envid <env-id> --outformat table
-mxcloudshare env-resume  --envid <env-id> --outformat table
-mxcloudshare env-create  --blueprint-id <bp-id> --name lab --count 5
-mxcloudshare class-list  --fields id,name --pattern '^Lab'
+mxcloudshare env-suspend --envid <env-id>
+mxcloudshare env-resume  --envid <env-id>
+mxcloudshare env-extend  --envid <env-id>
+mxcloudshare env-revert  --envid <env-id> [--snapshot-id <id>]
+mxcloudshare env-postpone --envid <env-id>
+
+# Snapshot actions
+mxcloudshare snapshot-take --envid <env-id> [--set-as-default]
+mxcloudshare snapshot-list --envid <env-id>
+mxcloudshare snapshot-mark-default --envid <env-id> --snapshot-id <id>
+
+# VM actions
+mxcloudshare vm-reboot --vmid <vm-id>
+mxcloudshare vm-revert --vmid <vm-id>
+mxcloudshare vm-delete --vmid <vm-id>
+mxcloudshare vm-hardware --vmid <vm-id> --payload '{"numCpus": 4}'
+mxcloudshare vm-remote-access --vmid <vm-id>
+
+# Blueprints and policies (scoped or project-wide)
+mxcloudshare blueprint-list [--project-id <id>]
+mxcloudshare policy-list [--project-id <id>]
+
+# Class & training (Phase 2)
+mxcloudshare class-list --fields id,name --pattern '^Lab'
+
+# Generic API escape hatch (reaches 100% of endpoints)
+mxcloudshare api-call GET /envs --query limit=20
+mxcloudshare api-call POST /envs/actions/create --body '{"name":"demo","blueprintId":"..."}'
 ```
+
+The generic `api-call` command accepts any HTTP method and path, plus
+`--query k=v` (repeatable) and `--body` as JSON. Every documented CloudShare
+REST API v3 endpoint is reachable from the CLI, even without a typed wrapper.
 
 `--outformat` accepts `json` (default), `table`, `card`, or `csv`. Add
 `--loglevel DEBUG` for detail, `--logfile <path>` to also write to disk.
@@ -58,27 +87,27 @@ The `env-*.sh` wrappers in the repo root are thin shortcuts around the above.
 
 
 Using the SDK directly
-----------------------
-```python
-from mxcloudshare.cloudshare import req
-
-res = req(hostname="use.cloudshare.com",
-          method="GET",
-          path="envs",
-          apiId="Your API ID",
-          apiKey="Your API Key")
-if res.status // 100 != 2:
-    raise Exception(res.status, res.content)
-```
-
-The higher-level helpers live in `mxcloudshare.mxcloudshare`:
+---------------------
+The typed wrappers in `mxcloudshare.mxcloudshare` are the easiest way to use the
+SDK:
 
 ```python
 from mxcloudshare import mxcloudshare as cs
 
 cs.cs_set_auth_keys(api_id, api_key)
 envs = cs.cs_env_get_all()
+
+# Generic API call — reaches every documented endpoint
+result = cs.cs_api_call("GET", "/envs", queryParams={"limit": "20"})
+result = cs.cs_api_call("POST", "/envs/actions/create",
+                        payload={"name": "demo", "blueprintId": "..."})
 ```
+
+~46 typed helpers cover the most common endpoints (environments, VMs, snapshots,
+blueprints, policies, classes, students), each with full signatures and
+docstrings. For anything else, `cs.cs_api_call(...)` is the generic escape hatch.
+
+See the full [REST API v3 docs](https://docs.cloudshare.com/rest-api/v3/).
 
 
 Development
@@ -115,12 +144,6 @@ main program — Nuitka compiles a script path and cannot compile
 > **Nuitka does not cross-compile.** A macOS binary must be built on macOS, a
 > Linux binary on Linux, and so on. `.github/workflows/build.yml` runs the
 > matrix for you and uploads `dist/main.dist/**` per platform.
-
-The pandas dependency makes the binary large (~130 MB standalone, since numpy
-and pandas ship as compiled extension modules). `pandas.json_normalize` is used
-only to flatten API responses into tables for `rich`; replacing it with a small
-dict-flattening helper would cut the binary by roughly an order of magnitude if
-size matters.
 
 Distribution note: Linux artifacts need `patchelf` installed
 (`apt-get install patchelf`) so Nuitka can rewrite the shared libraries it
