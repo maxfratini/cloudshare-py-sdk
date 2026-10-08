@@ -38,7 +38,7 @@ class Http:
     def _add_content_length_header_if_needed(self, method, headers, content):
         if headers is None:
             headers = {}
-        if method == 'PUT' or method == 'POST':
+        if method in ('PUT', 'POST', 'PATCH'):
             headers['Content-Length'] = len(content) if content is not None else 0
         return headers
 

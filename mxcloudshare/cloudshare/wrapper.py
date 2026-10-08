@@ -95,11 +95,11 @@ def create_env_from_bp_using_names(dct):
     new_dct['itemsCart'][0]['blueprintId'] = get_bp_id(new_dct['environment']['projectId'],
                                                        new_dct['itemsCart'][0]['blueprintId'])
 
-    if dct['itemsCart'][0].cs_get('snapshotId'):
+    if new_dct['itemsCart'][0].get('snapshotId'):
         new_dct['itemsCart'][0]['snapshotId'] = get_snapshot_id(
-                                                       dct['environment']['projectId'],
-                                                       dct['itemsCart'][0]['blueprintId'],
-                                                       dct['itemsCart'][0]['snapshotId'])
+                                                       new_dct['environment']['projectId'],
+                                                       new_dct['itemsCart'][0]['blueprintId'],
+                                                       new_dct['itemsCart'][0]['snapshotId'])
 
     return post('/envs', new_dct)
 
@@ -190,11 +190,25 @@ def get_project_bps(project_name):
 
 
 def remove_bp_from_project(project_name, bp_name):
-    return put(f'/Projects/{get_proj_id(project_name)}/blueprints/{get_bp_id(get_proj_id(project_name), bp_name)}/removeFromProject')
+    """Remove a blueprint from a project.
+
+    If bp_name starts with 'BP' and contains no spaces, it is treated as
+    a raw blueprint ID. Otherwise it is resolved by name within the project.
+    """
+    if bp_name.startswith('BP') and bp_name.find(' ') == -1:
+        bp_id = bp_name
+    else:
+        bp_id = get_bp_id(get_proj_id(project_name), bp_name)
+    return put(f'/Projects/{get_proj_id(project_name)}/blueprints/{bp_id}/removeFromProject')
 
 
 def add_bp_to_project(src_project_name, dest_project_name, bp_name):
     return post(f'/Projects/{get_proj_id(dest_project_name)}/blueprints/{get_bp_id(get_proj_id(src_project_name), bp_name)}/Post')
+
+
+def add_bp_id_to_project(dest_project_name, bp_id):
+    """Add a blueprint to a project using a pre-resolved blueprint ID."""
+    return post(f'/Projects/{get_proj_id(dest_project_name)}/blueprints/{bp_id}/Post')
 
 
 def execute_path(vm_id, command):
@@ -228,6 +242,11 @@ def get_bp(project_name, bp_name):
     return get(f'/projects/{project_id}/blueprints/{bp_id}')
 
 
+def get_bp_by_id(bp_id):
+    """Get blueprint details by ID (no project lookup needed)."""
+    return get(f'/blueprints/{bp_id}')
+
+
 def get_bp_snapshots(project_name, bp_name):
     bp = get_bp(project_name, bp_name)
     return bp['createFromVersions']
@@ -249,6 +268,33 @@ def change_bp_ownership(proj_name, bp_name, node_id):
 
 def validate_vix(machine_token):
     return post(f'/vms/actions/validateVix?vmId={machine_token}')
+
+
+# ──────────────────────────────────────────
+# ID translation helpers (ported from wrapper_cls)
+# ──────────────────────────────────────────
+
+def get_external_id(internal_id, entity_type='EN'):
+    """Translate an internal ID to an external ID."""
+    return get(f'/admin/Actions/TranslateInternalIdToExternalId?internalId={internal_id}&entityType={entity_type}')
+
+
+def get_internal_id(external_id):
+    """Translate an external ID to an internal ID."""
+    return get(f'/admin/Actions/TranslateExternalIdToInternalId?externalId={external_id}')
+
+
+def get_vm_list(env_token):
+    """Get VM list for an environment via the viewer API."""
+    return get(f'/viewer/actions/vmList?envId={env_token}')
+
+
+def delete_bp(proj_name, bp_name):
+    """Delete a blueprint by name within a project."""
+    proj_id = get_proj_id(proj_name)
+    bp_id = get_bp_id(proj_id, bp_name)
+    return request('DELETE', f'/blueprints/actions/Delete?blueprintId={bp_id}')
+
 
 
 def post(path, content=None):
