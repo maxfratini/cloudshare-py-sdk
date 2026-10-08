@@ -68,9 +68,14 @@ class TestPrintAsTable:
 
 class TestInitializeApp:
 
-    def test_tolerates_none_common_opts(self):
+    def test_tolerates_none_common_opts(self, monkeypatch):
         # cyclopts passes None when none of the common options were supplied;
         # this used to raise AttributeError on None.logfile.
+        # Isolate from real credentials: without env vars and with an empty
+        # cwd, loadKeys cannot find keys and initializeApp exits (SystemExit).
+        monkeypatch.delenv("CLOUDSHARE_API_ID", raising=False)
+        monkeypatch.delenv("CLOUDSHARE_API_KEY", raising=False)
+        monkeypatch.chdir(tempfile.mkdtemp())
         with pytest.raises(SystemExit):
             cli.initializeApp(None)
 

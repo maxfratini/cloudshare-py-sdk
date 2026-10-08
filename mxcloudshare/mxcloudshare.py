@@ -42,7 +42,10 @@ def cs_request(method, path, queryParams=None, content=None):
     )
     if res.status // 100 != 2:
         raise Exception("{} {}".format(res.status, res.content["message"]))
-    return res.content
+    # DELETE and other endpoints may answer 2xx with an empty body;
+    # _try_to_parse_json then yields None. Normalize to {} so helpers
+    # annotated `-> dict` keep their contract (verified live 2026-10-08).
+    return res.content if res.content is not None else {}
 
 
 def execute_path(machine, command):
