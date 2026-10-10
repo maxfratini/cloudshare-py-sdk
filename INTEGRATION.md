@@ -64,6 +64,8 @@ mxCloudShare automates the CloudShare platform (cloud-based training and demo en
 
 - **Polling behavior (`env_wait_condition`):** Commands that wait for a status transition (suspend, resume, delete, revert) poll every 6 seconds by default (configurable `delay_secs`), with a maximum of 20 retries (configurable `max_retry`). Each poll fetches VM statuses via `GET /envs/actions/getextended`. If the target `statusText` is not reached within the retry limit, the command logs a timeout but does not fail — it returns `False` and the CLI logs a timeout message without raising an exception.
 
+- **HTTP timeout:** every request has a 60 s socket timeout (`Http.TIMEOUT_SECS`). Before 2026-10-10 there was none and `env-delete` hung for 15+ min on a stale connection after a laptop sleep. A timeout surfaces as `urllib.error.URLError`; there is still no retry.
+
 - **Error handling:** `cs_request` in `mxcloudshare.py` raises an `Exception("status message")` for any non-2xx response. The exception is unhandled at the SDK level — the CLI does not catch it, so a failed API call surfaces as an unhandled exception to the user. The upstream legacy wrappers (`wrapper.py`, `wrapper_cls.py`) print the status and content to stdout and raise a generic `Exception('Error')`. There is no structured error type or error-code-based branching.
 
 - **Legacy-path decisions:** Two API paths in use are undocumented in the CloudShare REST API v3 reference. Per the API gap closure plan (decisions D3 and D4 in `plans/2026-10-07-api-gap-closure.md`):
