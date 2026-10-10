@@ -63,8 +63,10 @@ Every command accepts these options:
 | `--outformat` | `json` | Output format: `json`, `table`, `card`, or `csv` |
 | `--tablewidth` | `80` | Column width for table output |
 | `--keyfile` / `-k` | — | Path to auth keys file |
-| `--loglevel` | `PRINT` | Logging level: `PRINT`, `INFO`, `DEBUG`, `WARNING`, `ERROR` |
-| `--logfile` | — | Path to write a log file (appended) |
+| `--loglevel` | `PRINT` | Logging level: `DEBUG`, `PRINT`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (`PRINT` sits between `INFO` and `WARNING`, so the default hides `INFO`/`DEBUG` messages) |
+| `--logfile` | — | Path to write a log file (appended; every message allowed by `--loglevel`, with timestamp and level) |
+
+Log messages go to **stderr**, so stdout carries only command output and stays safe to pipe (`mxcloudshare env-show-all --outformat json | jq`).
 
 The command name comes **before** options — this is a Cyclopts convention:
 ```
@@ -401,7 +403,7 @@ Lists all policies, or policies scoped to a project when `--project-id` is given
 ## Environment creation
 
 ```bash
-mxcloudshare env-create <blueprint-id> [--policy-id <id>] [--name MyEnv] [--count 3]
+mxcloudshare env-create <blueprint-id> <project-id> <region-id> [--policy-id <id>] [--name MyEnv] [--count 3]
 ```
 
 Creates one or more environments from a blueprint. When `--count` is greater than 1, names are suffixed with `-1`, `-2`, etc.
@@ -429,7 +431,7 @@ The `api-call` command lets you reach **any** CloudShare REST API v3 endpoint, e
 
 ```bash
 mxcloudshare api-call GET /envs --query limit=20
-mxcloudshare api-call POST /envs/actions/create --body '{"blueprintId":"...","name":"demo"}'
+mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
 mxcloudshare api-call PUT /envs/actions/suspend --query envId=EN123
 mxcloudshare api-call DELETE /envs/EN123
 ```
@@ -458,5 +460,5 @@ mxcloudshare env-show-all --outformat table --tablewidth 120
 - **"CLOUDSHARE_API_ID and CLOUDSHARE_API_KEY not found"** — Create a `cloudshare.env` file, export the environment variables, or use `--keyfile`.
 - **Non-2xx API response** — The tool prints the HTTP status and error message from the API and exits. Check the endpoint path and parameters.
 - **Operation times out** — The poll loop (6-second intervals, 20 retries = 2 minutes max) may not be long enough for slow environments. This is a log message, not a hard failure — the operation may still complete on the server.
-- **Debugging** — Use `--loglevel DEBUG --logfile debug.log` to capture full request details and API responses.
+- **Debugging** — Use `--loglevel DEBUG --logfile debug.log` to capture the CLI's diagnostic messages and the HTTP requests (method, URL, body). The `Authorization` token is redacted, but request bodies are logged as-is, so treat the log file as sensitive.
 - **"No environments found"** — Confirm your API credentials have access to the target CloudShare account and that environments exist.

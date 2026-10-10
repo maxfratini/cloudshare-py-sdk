@@ -188,22 +188,25 @@ class TestCsEnvCreate:
     """Test cs_env_create helper."""
 
     @patch("mxcloudshare.mxcloudshare.cloudshare.req")
-    def test_sends_post_with_blueprint_id_only(self, mock_req):
-        mock_req.return_value = make_mock_response({"id": "env-1"})
-        cs.cs_env_create("bp-1")
+    def test_sends_post_to_envs_with_minimal_body(self, mock_req):
+        mock_req.return_value = make_mock_response({"environmentId": "env-1"})
+        cs.cs_env_create("bp-1", name="MyEnv", project_id="pr-1", region_id="re-1")
         assert mock_req.call_args[1]["method"] == "POST"
-        assert mock_req.call_args[1]["path"] == "/envs/actions/create"
-        assert mock_req.call_args[1]["content"] == {"blueprintId": "bp-1"}
+        assert mock_req.call_args[1]["path"] == "/envs"
+        assert mock_req.call_args[1]["content"] == {
+            "environment": {"name": "MyEnv", "projectId": "pr-1", "regionId": "re-1"},
+            "itemsCart": [{"type": 1, "blueprintId": "bp-1"}],
+        }
 
     @patch("mxcloudshare.mxcloudshare.cloudshare.req")
     def test_sends_post_with_all_fields(self, mock_req):
-        mock_req.return_value = make_mock_response({"id": "env-1"})
-        cs.cs_env_create("bp-1", policy_id="pol-1", name="MyEnv", description="Test env")
+        mock_req.return_value = make_mock_response({"environmentId": "env-1"})
+        cs.cs_env_create("bp-1", policy_id="pol-1", name="MyEnv", description="Test env",
+                         project_id="pr-1", region_id="re-1", snapshot_id="ss-1")
         assert mock_req.call_args[1]["content"] == {
-            "blueprintId": "bp-1",
-            "policyId": "pol-1",
-            "name": "MyEnv",
-            "description": "Test env",
+            "environment": {"name": "MyEnv", "projectId": "pr-1", "regionId": "re-1",
+                            "policyId": "pol-1", "description": "Test env"},
+            "itemsCart": [{"type": 1, "blueprintId": "bp-1", "snapshotId": "ss-1"}],
         }
 
 

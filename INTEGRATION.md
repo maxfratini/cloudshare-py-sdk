@@ -64,11 +64,17 @@ mxCloudShare automates the CloudShare platform (cloud-based training and demo en
 
 - **Polling behavior (`env_wait_condition`):** Commands that wait for a status transition (suspend, resume, delete, revert) poll every 6 seconds by default (configurable `delay_secs`), with a maximum of 20 retries (configurable `max_retry`). Each poll fetches VM statuses via `GET /envs/actions/getextended`. If the target `statusText` is not reached within the retry limit, the command logs a timeout but does not fail — it returns `False` and the CLI logs a timeout message without raising an exception.
 
+- **HTTP timeout:** every request has a 60 s socket timeout (`Http.TIMEOUT_SECS`). Before 2026-10-10 there was none and `env-delete` hung for 15+ min on a stale connection after a laptop sleep. A timeout surfaces as `urllib.error.URLError`; there is still no retry.
+
+- **Suspend precondition:** the API silently ignores a suspend while VMs are still `Loading from snapshot`. `env-suspend` therefore polls until every VM is `Running` (same 6 s x 20 budget as the other waits) and prints a warning and skips the environment if that does not happen or if the environment is not `Ready`/`Preparing`. VM `statusText` values seen: `Loading from snapshot`, `Running`, `Suspended` (`Ready` is an environment-level status, not a VM one).
+
+- **Logging of requests:** `requester.py` logs each request at `DEBUG` (method, URL, headers, JSON body) through the `mxcloudshare` package logger, so `--loglevel DEBUG` shows them and `--logfile` persists them. The `Authorization` header is replaced by `<redacted>`; bodies are not scrubbed.
+
 - **Error handling:** `cs_request` in `mxcloudshare.py` raises an `Exception("status message")` for any non-2xx response. The exception is unhandled at the SDK level — the CLI does not catch it, so a failed API call surfaces as an unhandled exception to the user. The upstream legacy wrappers (`wrapper.py`, `wrapper_cls.py`) print the status and content to stdout and raise a generic `Exception('Error')`. There is no structured error type or error-code-based branching.
 
 - **Legacy-path decisions:** Two API paths in use are undocumented in the CloudShare REST API v3 reference. Per the API gap closure plan (decisions D3 and D4 in `plans/2026-10-07-api-gap-closure.md`):
   - `/blueprints` and `/policies` — These flat-list endpoints are kept working unchanged. The project also provides project-scoped alternatives (`GET /projects/{id}/blueprints`, `GET /projects/{id}/policies`) that are documented.
-  - `POST /envs/actions/create` — The official documented path is `POST /envs`, but the legacy action path is kept because it works today. Changing it is a separate risk decision.
+  - `POST /envs/actions/create` — **Removed.** Live testing (2026-10-10) showed it returns `404 No HTTP resource was found`. `cs_env_create` now uses the documented `POST /envs` with body `{"environment": {name, projectId, regionId, policyId?, description?}, "itemsCart": [{"type": 1, "blueprintId": ..., "snapshotId"?: ...}]}`. `projectId` and `regionId` are required; the blueprint must have a snapshot in that region (else `404 Snapshot not found in specified region`) and the policy must belong to the project (else `500 Mismatching Project ...`). Response carries `environmentId`.
 
 - **Docs:** The official CloudShare REST API v3 reference is at <https://docs.cloudshare.com/rest-api/v3/>.
 
@@ -81,6 +87,16 @@ export CLOUDSHARE_API_ID=<your-api-id>
 export CLOUDSHARE_API_KEY=<your-api-key>
 uv run pytest tests/test_integration.py -v
 ```
+
+Tests that change state are opt-in and never pick an environment from the account listing. Point them at disposable environments:
+
+| Variable | Enables |
+|---|---|
+| `CLOUDSHARE_TEST_ENV_ID` | suspend / resume / snapshot-take on that environment |
+| `CLOUDSHARE_TEST_DELETE_ENV_ID` | delete test — **destroys** that environment |
+| `CLOUDSHARE_TEST_{BLUEPRINT,PROJECT,REGION,POLICY}_ID` | create-then-delete test (use a 0-VM blueprint such as "Delphix empty environment") |
+
+`test_snapshot_take` skips itself when the account gets `403 Permission denied` on the test environment.
 
 All other tests run entirely offline. They mock `mxcloudshare.mxcloudshare.cloudshare.req` with `unittest.mock`:
 

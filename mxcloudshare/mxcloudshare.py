@@ -109,19 +109,20 @@ def cs_env_delete(env_id: str) -> dict:
     return cs_delete(f"/envs/{env_id}")
 
 
-def cs_env_create(blueprint_id: str, policy_id: str = None, name: str = None, description: str = None) -> dict:
-    """Create an environment from a blueprint"""
-    payload = {
-        "blueprintId": blueprint_id,
-    }
+def cs_env_create(blueprint_id: str, policy_id: str = None, name: str = None, description: str = None,
+                  *, project_id: str, region_id: str, snapshot_id: str = None) -> dict:
+    """Create an environment from a blueprint (POST /envs; the blueprint must have a snapshot in `region_id`)"""
+    environment = {"name": name, "projectId": project_id, "regionId": region_id}
     if policy_id:
-        payload["policyId"] = policy_id
-    if name:
-        payload["name"] = name
+        environment["policyId"] = policy_id
     if description:
-        payload["description"] = description
+        environment["description"] = description
 
-    return cs_post("/envs/actions/create", payload)
+    item = {"type": 1, "blueprintId": blueprint_id}
+    if snapshot_id:
+        item["snapshotId"] = snapshot_id
+
+    return cs_post("/envs", {"environment": environment, "itemsCart": [item]})
 
 
 # Blueprint related functions

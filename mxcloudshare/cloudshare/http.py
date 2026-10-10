@@ -17,11 +17,13 @@ import urllib.request
 
 
 class Http:
+    # Seconds. Without it urlopen blocks forever on a stale connection (seen after a laptop sleep).
+    TIMEOUT_SECS = 60
 
     def request(self, method, url, headers, content):
         req = self._build_request(method, url, headers, content)
         try:
-            f = urllib.request.urlopen(req)
+            f = urllib.request.urlopen(req, timeout=self.TIMEOUT_SECS)
             return Response(status=f.getcode(), content=f.read())
         except urllib.error.HTTPError as e:
             return Response(status=e.getcode(), content=e.read())

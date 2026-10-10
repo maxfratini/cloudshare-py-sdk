@@ -22,6 +22,11 @@ from .http import Response
 logger = logging.getLogger(__name__)
 
 
+def _redacted(headers):
+    """Copy of the headers that is safe to log: the Authorization token is replaced."""
+    return {k: ("<redacted>" if k.lower() == "authorization" else v) for k, v in headers.items()}
+
+
 class Requester:
 
     def __init__(self, http, authenticationParameterProvider):
@@ -33,12 +38,12 @@ class Requester:
         json_content = json.dumps(content) if content is not None else None
         headers = self._build_headers(apiId, apiKey, url)
         res = self.http.request(method, url, headers, json_content)
-        logger.debug(f"request: {method} {url} {headers} {json_content}")
+        logger.debug(f"request: {method} {url} {_redacted(headers)} {json_content}")
         return Response(status=res.status, content=self._try_to_parse_json(res.content))
 
     def _build_headers(self, apiId, apiKey, url):
         headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": "cs_sha1 %s" % self.authenticationParameterProvider.get(apiId=apiId, apiKey=apiKey, url=url)}
-        logger.debug(f"headers: {headers}")
+        logger.debug(f"headers: {_redacted(headers)}")
         return headers
 
     def _build_url(self, hostname, path, queryParams):

@@ -89,13 +89,13 @@ def initializeApp(commopts: mxCommonOpts | None) -> AppConfig:
     if commopts is None:
         commopts = mxCommonOpts()
 
-    mxlogger.setup_mxLogger(log_file=commopts.logfile, log_level=commopts.loglevel)
+    mxLogging.setup_mxLogger(log_file=commopts.logfile, log_level=commopts.loglevel)
     if commopts.loglevel.upper() in ["INFO", "DEBUG"]:
-        mxlogger.info("LogLevel is set to %s", logging.getLevelName(logging.getLogger().getEffectiveLevel()))
+        mxlogger.info("LogLevel is set to %s", logging.getLevelName(mxlogger.getEffectiveLevel()))
 
     # Load auth keys
     _API_ID, _API_KEY = loadKeys(commopts.keyfile)
-    mxlogger.debug(f"Loaded API_ID: {_API_ID} and API_KEY: {_API_KEY}")
+    mxlogger.debug("Loaded API credentials (API_ID ending in ...%s)", str(_API_ID)[-4:])
 
     config = AppConfig(
         outputformat=commopts.outformat,
@@ -399,8 +399,8 @@ def env_wait_condition(envId: str, checks: str, delay_secs: int = 3, max_retry: 
         while stillWorking and retries < max_retry:
             machines = cs.get_vms(envId)
             retries += 1
+            stillWorking = False  # an environment without VMs has nothing to wait for
             for m in machines:
-                stillWorking = False
                 # check if all conditions are met
                 for condition in checks:
                     property_name = condition["property"]
@@ -452,6 +452,12 @@ def env_wait_condition(envId: str, checks: str, delay_secs: int = 3, max_retry: 
             _progress.stop()
 
 
+def env_wait_vms_running(envId: str, delay_secs: int = 6, max_retry: int = 20) -> bool:
+    """Wait until every VM of the environment is Running (False on timeout)."""
+    checks = [{"property": "statusText", "check_fn": lambda x: x == "Running"}]
+    return env_wait_condition(envId, checks, delay_secs=delay_secs, max_retry=max_retry, operation=f"Waiting for VMs of {envId} to be Running")
+
+
 #
 @cs_app.command()
 def env_suspend(
@@ -477,8 +483,12 @@ def env_suspend(
             continue
         # Check if the environment is in a state that can be suspended
         status = cs.env_get_status(envId)
-        if status != EnvStatus.ready:
-            mxlogger.info(f"Environment {envId} is not in a state that can be suspended (current status: {status})")
+        if status not in (EnvStatus.ready, EnvStatus.preparing):
+            mxlogger.warning(f"Skipping {envId}: cannot be suspended (current status: {status})")
+            continue
+        # Suspending while VMs are still loading is silently ignored by the API: wait for Running first
+        if not env_wait_vms_running(envId):
+            mxlogger.warning(f"Skipping {envId}: VMs did not reach Running in time, not suspended")
             continue
         # Suspend the environment
         cs.cs_env_suspend(envId)
@@ -489,7 +499,7 @@ def env_suspend(
         if completed:
             mxlogger.info(f"Suspend of environment {envId} completed!")
         else:
-            mxlogger.info(f"Timed out waiting for environment {envId} to reach Suspended state")
+            mxlogger.warning(f"Timed out waiting for environment {envId} to reach Suspended state")
 
 
 #
@@ -516,7 +526,7 @@ def env_delete(
         # Check if the environment is in a state that can be deleted
         status = cs.env_get_status(envId)
         if status == EnvStatus.deleted:
-            mxlogger.info(f"Environment {envId} is not in a state that can be deleted (current status: {status})")
+            mxlogger.warning(f"Skipping {envId}: already deleted (current status: {status})")
             continue
         # Delete the environment
         cs.cs_env_delete(envId)
@@ -525,7 +535,7 @@ def env_delete(
         if completed:
             mxlogger.info(f"Delete of environment {envId} completed!")
         else:
-            mxlogger.info(f"Timed out waiting for environment {envId} to reach Deleted state")
+            mxlogger.warning(f"Timed out waiting for environment {envId} to reach Deleted state")
 
 
 #
@@ -552,7 +562,7 @@ def env_resume(
         # Check if the environment is in a state that can be resumed
         status = cs.env_get_status(envId)
         if status != EnvStatus.suspended:
-            mxlogger.info(f"Environment {envId} is not in a state that can be resumed (current status: {status})")
+            mxlogger.warning(f"Skipping {envId}: cannot be resumed (current status: {status}, expected {EnvStatus.suspended.value})")
             continue
         # Resume the environment
         cs.cs_env_resume(envId)
@@ -562,7 +572,7 @@ def env_resume(
         if completed:
             mxlogger.info(f"Resume completed for environment {envId}")
         else:
-            mxlogger.info(f"Timed out waiting for environment {envId} to reach Resumed state")
+            mxlogger.warning(f"Timed out waiting for environment {envId} to reach Running state")
 
 
 @cs_app.command()
@@ -656,7 +666,9 @@ def policy_list(
 @cs_app.command()
 def env_create(
     blueprint_id: Annotated[str, Parameter(help="Blueprint ID to create environment from")],
-    policy_id: Annotated[str, Parameter(help="Policy ID to use")] = None,
+    project_id: Annotated[str, Parameter(help="Project ID to create the environment in")],
+    region_id: Annotated[str, Parameter(help="Region ID (the blueprint needs a snapshot there)")],
+    policy_id: Annotated[str, Parameter(help="Policy ID to use (must belong to the project)")] = None,
     name: Annotated[str, Parameter(help="Name for the new environment")] = None,
     description: Annotated[str, Parameter(help="Description for the new environment")] = None,
     count: Annotated[int, Parameter(help="Number of environments to create")] = 1,
@@ -676,6 +688,8 @@ def env_create(
         except (json.JSONDecodeError, OSError) as exc:
             raise ValueError(f"Invalid --json input: {exc}") from exc
         blueprint_id = overrides.get("blueprintId", blueprint_id)
+        project_id = overrides.get("projectId", project_id)
+        region_id = overrides.get("regionId", region_id)
         policy_id = overrides.get("policyId", policy_id)
         name = overrides.get("name", name)
         description = overrides.get("description", description)
@@ -683,7 +697,8 @@ def env_create(
 
     results = []
     for i in range(count):
-        result = cs.cs_env_create(blueprint_id, policy_id, f"{name}-{i+1}", description)
+        result = cs.cs_env_create(blueprint_id, policy_id, f"{name}-{i+1}", description,
+                                  project_id=project_id, region_id=region_id)
         results.append(result)
 
     print_results(results, config)
@@ -944,7 +959,7 @@ def env_revert(
         if completed:
             mxlogger.info(f"Revert of environment {envId} completed!")
         else:
-            mxlogger.info(f"Timed out waiting for environment {envId} to reach Ready state")
+            mxlogger.warning(f"Timed out waiting for environment {envId} to reach Ready state")
 
 
 @cs_app.command()

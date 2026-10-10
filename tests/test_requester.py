@@ -1,6 +1,8 @@
+import logging
 import unittest
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
+from mxcloudshare.cloudshare.http import Response
 from mxcloudshare.cloudshare.requester import Requester
 
 
@@ -148,3 +150,21 @@ class TestRequester(unittest.TestCase):
 
         self.assertEqual(500, res.status)
         self.assertIsNone(res.content)
+
+class TestDebugLogsDoNotLeakCredentials:
+    """--loglevel DEBUG --logfile writes these records to disk."""
+
+    def test_authorization_token_is_redacted(self, caplog):
+        provider = MagicMock()
+        provider.get.return_value = "SECRET-TOKEN-123"
+        http = MagicMock()
+        http.request.return_value = Response(status=200, content="{}")
+
+        with caplog.at_level(logging.DEBUG, logger="mxcloudshare.cloudshare.requester"):
+            Requester(http, provider).cs_request("use.cloudshare.com", "GET", "id", "key", path="envs")
+
+        assert caplog.records, "expected debug records"
+        assert "SECRET-TOKEN-123" not in caplog.text
+        assert "<redacted>" in caplog.text
+        # the real request still carries the token
+        assert http.request.call_args[0][2]["Authorization"] == "cs_sha1 SECRET-TOKEN-123"

@@ -219,13 +219,14 @@ class mxCycloptsApp(App):
                 pass
 
         # Aggiorna la firma della funzione
-        new_params = parameters + [inspect.Parameter(name=commonopts_var_name, kind=inspect.Parameter.KEYWORD_ONLY, annotation=opts_class, default=inspect.Parameter.empty)]
+        # cyclopts >= v5 rejects a Parameter(name="*") dataclass without a default: declare it optional
+        new_params = parameters + [inspect.Parameter(name=commonopts_var_name, kind=inspect.Parameter.KEYWORD_ONLY, annotation=opts_class | None, default=None)]
 
         wrapper.__signature__ = sig.replace(parameters=new_params)
 
         # Aggiorna le annotazioni dei tipi
         hints = get_type_hints(func)
-        hints[commonopts_var_name] = opts_class
+        hints[commonopts_var_name] = opts_class | None
         wrapper.__annotations__ = hints
 
         #  print all signature details for new func
