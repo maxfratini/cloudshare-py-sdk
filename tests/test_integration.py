@@ -1,22 +1,61 @@
+"""Integration tests against the real CloudShare API (PLAN-001 P4-1).
+
+Skipped unless CLOUDSHARE_API_ID / CLOUDSHARE_API_KEY are exported. Run with
+``make integration``, which exports them from ``cloudshare.env``.
+
+Safety model:
+- Read-only tests run against whatever the account holds.
+- Mutating tests (suspend/resume/snapshot) run ONLY against the environment named
+  in CLOUDSHARE_TEST_ENV_ID. Never against "the first env in the list".
+- The lifecycle test creates its OWN throwaway environment from
+  CLOUDSHARE_TEST_BLUEPRINT_ID / _REGION_ID / _POLICY_ID, exercises it, and deletes it
+  in a ``finally``. That is the only place a delete runs.
+"""
+
 import os
+import time
 import unittest
 
 from mxcloudshare.cloudshare import req
 from mxcloudshare.mxcloudshare import (
+    cs_api_call,
     cs_blueprint_get_all,
     cs_class_get_all,
     cs_env_create,
     cs_env_delete,
+    cs_env_get,
     cs_env_get_all,
     cs_env_resume,
     cs_env_suspend,
+    cs_ping,
     cs_policy_get_all,
+    cs_project_blueprints_get_all,
+    cs_project_get_all,
+    cs_project_policies_get_all,
+    cs_region_get_all,
     cs_set_auth_keys,
     cs_snapshot_get_for_env,
     cs_snapshot_take,
+    cs_timezone_get_all,
 )
 
 REAL_KEYS_AVAILABLE = "CLOUDSHARE_API_ID" in os.environ and "CLOUDSHARE_API_KEY" in os.environ
+TEST_ENV_ID = os.environ.get("CLOUDSHARE_TEST_ENV_ID")
+TEST_BLUEPRINT_ID = os.environ.get("CLOUDSHARE_TEST_BLUEPRINT_ID")
+TEST_REGION_ID = os.environ.get("CLOUDSHARE_TEST_REGION_ID")
+TEST_POLICY_ID = os.environ.get("CLOUDSHARE_TEST_POLICY_ID")
+
+needs_keys = unittest.skipUnless(
+    REAL_KEYS_AVAILABLE, "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined."
+)
+needs_test_env = unittest.skipUnless(
+    REAL_KEYS_AVAILABLE and TEST_ENV_ID,
+    "Mutating test: set CLOUDSHARE_TEST_ENV_ID to a disposable environment to enable.",
+)
+needs_lifecycle = unittest.skipUnless(
+    REAL_KEYS_AVAILABLE and TEST_BLUEPRINT_ID and TEST_REGION_ID and TEST_POLICY_ID,
+    "Creates and deletes a real environment: set CLOUDSHARE_TEST_{BLUEPRINT,REGION,POLICY}_ID.",
+)
 
 
 def _authed_helpers():
@@ -27,151 +66,117 @@ def _authed_helpers():
     return api_id, api_key
 
 
-def _target_env_id(testcase, var="CLOUDSHARE_TEST_ENV_ID"):
-    """Env ID that mutating tests may touch; skip unless explicitly designated.
+class TestIntegrationReadOnly(unittest.TestCase):
+    """Read-only calls: safe on any account."""
 
-    Never pick an environment from the account listing: the account may hold real ones.
-    """
-    env_id = os.environ.get(var)
-    if not env_id:
-        testcase.skipTest(f"Mutating test: set {var} to a disposable environment ID to enable")
-    return env_id
+    def setUp(self):
+        _authed_helpers()
 
-
-class TestIntegration(unittest.TestCase):
-
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_get_projects(self):
-        """Raw req helper: GET /projects -- requires sandbox creds in CI."""
-        api_id = os.environ["CLOUDSHARE_API_ID"]
-        api_key = os.environ["CLOUDSHARE_API_KEY"]
-        res = req(hostname="use.cloudshare.com",
-                  method="GET",
-                  apiId=api_id,
-                  apiKey=api_key,
-                  path="projects")
+    @needs_keys
+    def test_get_projects_raw(self):
+        """Raw req helper: GET /projects."""
+        api_id, api_key = _authed_helpers()
+        res = req(hostname="use.cloudshare.com", method="GET", apiId=api_id, apiKey=api_key, path="projects")
         self.assertEqual(2, res.status // 100)
 
-    # ------------------------------------------------------------------ #
-    # Environment lifecycle: suspend / resume / delete                   #
-    # ------------------------------------------------------------------ #
+    @needs_keys
+    def test_project_list(self):
+        self.assertIsInstance(cs_project_get_all(), list)
 
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
+    @needs_keys
+    def test_project_scoped_blueprints_and_policies(self):
+        projects = cs_project_get_all()
+        if not projects:
+            self.skipTest("No projects available")
+        project_id = projects[0]["id"]
+        self.assertIsInstance(cs_project_blueprints_get_all(project_id), list)
+        self.assertIsInstance(cs_project_policies_get_all(project_id), list)
+
+    @needs_keys
     def test_env_list(self):
-        """cs_env_get_all returns a list of environments -- requires sandbox creds in CI."""
-        _authed_helpers()
-        envs = cs_env_get_all()
-        self.assertIsInstance(envs, list)
+        self.assertIsInstance(cs_env_get_all(), list)
 
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_env_suspend(self):
-        """cs_env_suspend accepts an env ID and returns a dict -- requires sandbox creds in CI."""
-        _authed_helpers()
-        env_id = _target_env_id(self)
-        result = cs_env_suspend(env_id)
-        self.assertIsInstance(result, dict)
-
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_env_resume(self):
-        """cs_env_resume accepts an env ID and returns a dict -- requires sandbox creds in CI."""
-        _authed_helpers()
-        env_id = _target_env_id(self)
-        result = cs_env_resume(env_id)
-        self.assertIsInstance(result, dict)
-
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_env_delete(self):
-        """cs_env_delete on the env in CLOUDSHARE_TEST_DELETE_ENV_ID (destroys it!) -- opt-in only."""
-        _authed_helpers()
-        env_id = _target_env_id(self, "CLOUDSHARE_TEST_DELETE_ENV_ID")
-        result = cs_env_delete(env_id)
-        self.assertIsInstance(result, dict)
-
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_env_create_then_delete(self):
-        """cs_env_create builds a real env, which is deleted right after.
-
-        Opt-in: needs CLOUDSHARE_TEST_{BLUEPRINT,PROJECT,REGION,POLICY}_ID (use a 0-VM blueprint).
-        """
-        ids = {k: os.environ.get(f"CLOUDSHARE_TEST_{k}_ID") for k in ("BLUEPRINT", "PROJECT", "REGION", "POLICY")}
-        missing = [k for k, v in ids.items() if not v]
-        if missing:
-            self.skipTest(f"Creating test: set CLOUDSHARE_TEST_{{{','.join(missing)}}}_ID to enable")
-        _authed_helpers()
-        created = cs_env_create(ids["BLUEPRINT"], ids["POLICY"], "mxcloudshare-it-create", "integration test - safe to delete",
-                                project_id=ids["PROJECT"], region_id=ids["REGION"])
-        env_id = created["environmentId"]
-        self.addCleanup(cs_env_delete, env_id)
-        self.assertTrue(env_id.startswith("EN"))
-
-    # ------------------------------------------------------------------ #
-    # Snapshot list / take                                                #
-    # ------------------------------------------------------------------ #
-
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
+    @needs_keys
     def test_snapshot_list(self):
-        """cs_snapshot_get_for_env returns snapshots for an env -- requires sandbox creds in CI."""
-        _authed_helpers()
         envs = cs_env_get_all()
         if not envs:
             self.skipTest("No environments available to list snapshots for")
-        env_id = envs[0]["id"]
-        snapshots = cs_snapshot_get_for_env(env_id)
-        self.assertIsInstance(snapshots, list)
+        self.assertIsInstance(cs_snapshot_get_for_env(envs[0]["id"]), list)
 
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_snapshot_take(self):
-        """cs_snapshot_take returns a dict -- requires sandbox creds in CI."""
+    @needs_keys
+    def test_class_list(self):
+        self.assertIsInstance(cs_class_get_all(), list)
+
+    @needs_keys
+    def test_blueprint_list_legacy_path(self):
+        """ISS-005: the undocumented /blueprints path must keep working."""
+        self.assertIsInstance(cs_blueprint_get_all(), list)
+
+    @needs_keys
+    def test_policy_list_legacy_path(self):
+        """ISS-005: the undocumented /policies path must keep working."""
+        self.assertIsInstance(cs_policy_get_all(), list)
+
+    @needs_keys
+    def test_utilities(self):
+        self.assertIsNotNone(cs_ping())
+        self.assertIsInstance(cs_region_get_all(), list)
+        self.assertIsInstance(cs_timezone_get_all(), list)
+
+    @needs_keys
+    def test_generic_api_call_get(self):
+        self.assertIsInstance(cs_api_call("GET", "projects"), (list, dict))
+
+
+class TestIntegrationMutating(unittest.TestCase):
+    """State-changing calls, pinned to CLOUDSHARE_TEST_ENV_ID."""
+
+    def setUp(self):
         _authed_helpers()
-        env_id = _target_env_id(self)
+
+    @needs_test_env
+    def test_env_suspend_resume(self):
+        self.assertIsInstance(cs_env_suspend(TEST_ENV_ID), dict)
+        self.assertIsInstance(cs_env_resume(TEST_ENV_ID), dict)
+
+    @needs_test_env
+    def test_snapshot_take(self):
         try:
-            result = cs_snapshot_take(env_id, name="integration-test-snapshot")
+            result = cs_snapshot_take(TEST_ENV_ID, name="integration-test-snapshot")
         except Exception as exc:
             if str(exc).startswith("403"):
-                self.skipTest(f"Account lacks snapshot permission on the test environment: {exc}")
+                self.skipTest(f"Account may not take snapshots: {exc}")
             raise
         self.assertIsInstance(result, dict)
 
-    # ------------------------------------------------------------------ #
-    # Class listing                                                        #
-    # ------------------------------------------------------------------ #
 
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_class_list(self):
-        """cs_class_get_all returns a list of classes -- requires sandbox creds in CI."""
+class TestIntegrationLifecycle(unittest.TestCase):
+    """create -> suspend -> resume -> delete on a throwaway environment."""
+
+    def setUp(self):
         _authed_helpers()
-        classes = cs_class_get_all()
-        self.assertIsInstance(classes, list)
 
-    # ------------------------------------------------------------------ #
-    # Blueprint listing                                                    #
-    # ------------------------------------------------------------------ #
+    @needs_lifecycle
+    def test_env_create_suspend_resume_delete(self):
+        created = cs_env_create(TEST_BLUEPRINT_ID, name=f"mxcs-integration-test-{int(time.time())}",
+                                description="Temporary: mxCloudShare integration test",
+                                region_id=TEST_REGION_ID, policy_id=TEST_POLICY_ID)
+        env_id = created["environmentId"]
+        try:
+            self._wait_for_status(env_id, "ready")
+            self.assertIsInstance(cs_env_suspend(env_id), dict)
+            self.assertIsInstance(cs_env_resume(env_id), dict)
+        finally:
+            cs_env_delete(env_id)
+        self.assertNotIn(env_id, [e["id"] for e in cs_env_get_all()])
 
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_blueprint_list(self):
-        """cs_blueprint_get_all returns a list of blueprints -- requires sandbox creds in CI."""
-        _authed_helpers()
-        blueprints = cs_blueprint_get_all()
-        self.assertIsInstance(blueprints, list)
-
-    # ------------------------------------------------------------------ #
-    # Policy listing                                                       #
-    # ------------------------------------------------------------------ #
-
-    @unittest.skipUnless(REAL_KEYS_AVAILABLE,
-                         "This test only runs if CLOUDSHARE_API_{ID,KEY} envars are defined.")
-    def test_policy_list(self):
-        """cs_policy_get_all returns a list of policies -- requires sandbox creds in CI."""
-        _authed_helpers()
-        policies = cs_policy_get_all()
-        self.assertIsInstance(policies, list)
+    def _wait_for_status(self, env_id, wanted, timeout=300, delay=10):
+        deadline = time.monotonic() + timeout
+        status = None
+        while time.monotonic() < deadline:
+            env = cs_env_get(env_id)
+            status = env.get("statusText") or env.get("status")
+            if str(status).lower() == wanted:
+                return
+            time.sleep(delay)
+        self.fail(f"Environment {env_id} not {wanted!r} after {timeout}s (last status: {status!r})")

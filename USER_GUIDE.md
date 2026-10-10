@@ -403,10 +403,10 @@ Lists all policies, or policies scoped to a project when `--project-id` is given
 ## Environment creation
 
 ```bash
-mxcloudshare env-create <blueprint-id> <project-id> <region-id> [--policy-id <id>] [--name MyEnv] [--count 3]
+mxcloudshare env-create <blueprint-id> --policy-id <id> --region-id <id> [--project-id <id>] [--name MyEnv] [--count 3]
 ```
 
-Creates one or more environments from a blueprint. When `--count` is greater than 1, names are suffixed with `-1`, `-2`, etc.
+Creates one or more environments from a blueprint (`POST /envs`). `--policy-id` and `--region-id` are required (see `policy-list`, `region-list`); `--project-id` is looked up from the policy if omitted (the policy must belong to the target project; the blueprint may come from another one). When `--count` is greater than 1, names are suffixed with `-1`, `-2`, etc.
 
 ## Shared environments and public cloud
 
@@ -431,7 +431,7 @@ The `api-call` command lets you reach **any** CloudShare REST API v3 endpoint, e
 
 ```bash
 mxcloudshare api-call GET /envs --query limit=20
-mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
+mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","policyId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
 mxcloudshare api-call PUT /envs/actions/suspend --query envId=EN123
 mxcloudshare api-call DELETE /envs/EN123
 ```

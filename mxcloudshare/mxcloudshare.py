@@ -110,11 +110,23 @@ def cs_env_delete(env_id: str) -> dict:
 
 
 def cs_env_create(blueprint_id: str, policy_id: str = None, name: str = None, description: str = None,
-                  *, project_id: str, region_id: str, snapshot_id: str = None) -> dict:
-    """Create an environment from a blueprint (POST /envs; the blueprint must have a snapshot in `region_id`)"""
-    environment = {"name": name, "projectId": project_id, "regionId": region_id}
-    if policy_id:
-        environment["policyId"] = policy_id
+                  project_id: str = None, region_id: str = None, snapshot_id: str = None) -> dict:
+    """Create an environment from a blueprint (POST /envs). project_id is looked up from the policy if omitted."""
+    if not region_id:
+        raise ValueError("region_id is required by POST /envs (see cs_region_get_all)")
+    if not policy_id:
+        raise ValueError("policy_id is required when creating from a blueprint (see cs_project_policies_get_all)")
+    if not project_id:
+        # The policy must belong to the target project (else "500 Mismatching Project"), while the
+        # blueprint may come from another project, so the policy alone identifies the project.
+        project_id = next((p["id"] for p in cs_project_get_all()
+                           if any(x["id"] == policy_id for x in cs_project_policies_get_all(p["id"]))), None)
+        if not project_id:
+            raise ValueError(f"No project contains policy {policy_id}")
+
+    environment = {"projectId": project_id, "regionId": region_id, "policyId": policy_id}
+    if name:
+        environment["name"] = name
     if description:
         environment["description"] = description
 

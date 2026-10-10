@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help setup lock sync test lint fmt check build dist dist-bundle build-onefile clean smoke smoke-lite
+.PHONY: help setup lock sync test lint fmt check build dist dist-bundle build-onefile clean smoke smoke-lite integration
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -23,6 +23,9 @@ fmt: ## Autofix lint issues
 	uv run ruff check --fix .
 
 check: lint test ## Lint + test
+
+integration: ## Run integration tests against the real API (creds from cloudshare.env; read-only unless CLOUDSHARE_TEST_ENV_ID is set)
+	set -a; . ./cloudshare.env; set +a; uv run pytest tests/test_integration.py -v
 
 build: dist ## Alias for dist
 
