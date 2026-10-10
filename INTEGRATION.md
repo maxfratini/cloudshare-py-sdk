@@ -68,7 +68,7 @@ mxCloudShare automates the CloudShare platform (cloud-based training and demo en
 
 - **Legacy-path decisions:** Two API paths in use are undocumented in the CloudShare REST API v3 reference. Per the API gap closure plan (decisions D3 and D4 in `plans/2026-10-07-api-gap-closure.md`):
   - `/blueprints` and `/policies` — These flat-list endpoints are kept working unchanged. The project also provides project-scoped alternatives (`GET /projects/{id}/blueprints`, `GET /projects/{id}/policies`) that are documented.
-  - `POST /envs/actions/create` — The official documented path is `POST /envs`, but the legacy action path is kept because it works today. Changing it is a separate risk decision.
+  - `POST /envs/actions/create` — **Removed.** Live testing (2026-10-10) showed it returns `404 No HTTP resource was found`. `cs_env_create` now uses the documented `POST /envs` with body `{"environment": {name, projectId, regionId, policyId?, description?}, "itemsCart": [{"type": 1, "blueprintId": ..., "snapshotId"?: ...}]}`. `projectId` and `regionId` are required; the blueprint must have a snapshot in that region (else `404 Snapshot not found in specified region`) and the policy must belong to the project (else `500 Mismatching Project ...`). Response carries `environmentId`.
 
 - **Docs:** The official CloudShare REST API v3 reference is at <https://docs.cloudshare.com/rest-api/v3/>.
 
@@ -81,6 +81,16 @@ export CLOUDSHARE_API_ID=<your-api-id>
 export CLOUDSHARE_API_KEY=<your-api-key>
 uv run pytest tests/test_integration.py -v
 ```
+
+Tests that change state are opt-in and never pick an environment from the account listing. Point them at disposable environments:
+
+| Variable | Enables |
+|---|---|
+| `CLOUDSHARE_TEST_ENV_ID` | suspend / resume / snapshot-take on that environment |
+| `CLOUDSHARE_TEST_DELETE_ENV_ID` | delete test — **destroys** that environment |
+| `CLOUDSHARE_TEST_{BLUEPRINT,PROJECT,REGION,POLICY}_ID` | create-then-delete test (use a 0-VM blueprint such as "Delphix empty environment") |
+
+`test_snapshot_take` skips itself when the account gets `403 Permission denied` on the test environment.
 
 All other tests run entirely offline. They mock `mxcloudshare.mxcloudshare.cloudshare.req` with `unittest.mock`:
 

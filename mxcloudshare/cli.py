@@ -656,7 +656,9 @@ def policy_list(
 @cs_app.command()
 def env_create(
     blueprint_id: Annotated[str, Parameter(help="Blueprint ID to create environment from")],
-    policy_id: Annotated[str, Parameter(help="Policy ID to use")] = None,
+    project_id: Annotated[str, Parameter(help="Project ID to create the environment in")],
+    region_id: Annotated[str, Parameter(help="Region ID (the blueprint needs a snapshot there)")],
+    policy_id: Annotated[str, Parameter(help="Policy ID to use (must belong to the project)")] = None,
     name: Annotated[str, Parameter(help="Name for the new environment")] = None,
     description: Annotated[str, Parameter(help="Description for the new environment")] = None,
     count: Annotated[int, Parameter(help="Number of environments to create")] = 1,
@@ -676,6 +678,8 @@ def env_create(
         except (json.JSONDecodeError, OSError) as exc:
             raise ValueError(f"Invalid --json input: {exc}") from exc
         blueprint_id = overrides.get("blueprintId", blueprint_id)
+        project_id = overrides.get("projectId", project_id)
+        region_id = overrides.get("regionId", region_id)
         policy_id = overrides.get("policyId", policy_id)
         name = overrides.get("name", name)
         description = overrides.get("description", description)
@@ -683,7 +687,8 @@ def env_create(
 
     results = []
     for i in range(count):
-        result = cs.cs_env_create(blueprint_id, policy_id, f"{name}-{i+1}", description)
+        result = cs.cs_env_create(blueprint_id, policy_id, f"{name}-{i+1}", description,
+                                  project_id=project_id, region_id=region_id)
         results.append(result)
 
     print_results(results, config)

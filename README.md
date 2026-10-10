@@ -73,7 +73,7 @@ mxcloudshare class-list --fields id,name --pattern '^Lab'
 
 # Generic API escape hatch (reaches 100% of endpoints)
 mxcloudshare api-call GET /envs --query limit=20
-mxcloudshare api-call POST /envs/actions/create --body '{"name":"demo","blueprintId":"..."}'
+mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
 ```
 
 The generic `api-call` command accepts any HTTP method and path, plus
@@ -99,8 +99,7 @@ envs = cs.cs_env_get_all()
 
 # Generic API call — reaches every documented endpoint
 result = cs.cs_api_call("GET", "/envs", queryParams={"limit": "20"})
-result = cs.cs_api_call("POST", "/envs/actions/create",
-                        payload={"name": "demo", "blueprintId": "..."})
+result = cs.cs_env_create("BP...", name="demo", project_id="PR...", region_id="RE...")
 ```
 
 ~46 typed helpers cover the most common endpoints (environments, VMs, snapshots,

@@ -401,7 +401,7 @@ Lists all policies, or policies scoped to a project when `--project-id` is given
 ## Environment creation
 
 ```bash
-mxcloudshare env-create <blueprint-id> [--policy-id <id>] [--name MyEnv] [--count 3]
+mxcloudshare env-create <blueprint-id> <project-id> <region-id> [--policy-id <id>] [--name MyEnv] [--count 3]
 ```
 
 Creates one or more environments from a blueprint. When `--count` is greater than 1, names are suffixed with `-1`, `-2`, etc.
@@ -429,7 +429,7 @@ The `api-call` command lets you reach **any** CloudShare REST API v3 endpoint, e
 
 ```bash
 mxcloudshare api-call GET /envs --query limit=20
-mxcloudshare api-call POST /envs/actions/create --body '{"blueprintId":"...","name":"demo"}'
+mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
 mxcloudshare api-call PUT /envs/actions/suspend --query envId=EN123
 mxcloudshare api-call DELETE /envs/EN123
 ```

@@ -9,17 +9,6 @@ import pytest
 from mxcloudshare.mxutils.mxCyclopts import CommonOpts, mxCycloptsApp
 
 # ---------------------------------------------------------------------------
-# NOTE: Tests that exercise ``command_with_commonopts`` are skipped below
-# because cyclopts >= v5 validates that a ``@Parameter(name="*")`` annotation
-# (which marks a dataclass as consuming all remaining CLI args) must have a
-# default value.  The ``_apply_commonopts`` wrapper adds ``common_opts:
-# CommonOpts`` without a default, triggering a ``ValueError`` at registration
-# time.  This is a pre-existing incompatibility in the source code (the
-# ``mxCyclopts`` module is not in the write scope of this task).
-# ---------------------------------------------------------------------------
-
-
-# ---------------------------------------------------------------------------
 # CommonOpts singleton behaviour
 # ---------------------------------------------------------------------------
 
@@ -76,16 +65,8 @@ class TestCommonOptsSingleton:
 
 
 # ---------------------------------------------------------------------------
-# mxCycloptsApp — command_with_commonopts decorator (skipped due to cyclopts
-# version incompatibility; see module docstring).
+# mxCycloptsApp — command_with_commonopts decorator
 # ---------------------------------------------------------------------------
-
-
-cyclops_skip = pytest.mark.skip(
-    reason="cyclopts >= v5 rejects parameter with @Parameter(name='*') and no default value; "
-    "mxCyclopts._apply_commonopts needs a fix (out of scope for this task). "
-    "See also the inline comment in test_mxcyclopts.py."
-)
 
 
 class TestMxCycloptsApp:
@@ -100,19 +81,16 @@ class TestMxCycloptsApp:
 
         return sample_cmd
 
-    @cyclops_skip
     def test_decorator_adds_common_opts_parameter(self):
         app = mxCycloptsApp(name="test-app-1")
         cmd = self.make_command(app)
         assert "common_opts" in cmd.__annotations__
 
-    @cyclops_skip
     def test_decorated_command_is_registered_in_app(self):
         app = mxCycloptsApp(name="test-app-2")
         self.make_command(app)
         assert "sample-cmd" in app._commands
 
-    @cyclops_skip
     def test_wrapper_passes_opts_when_called(self):
         app = mxCycloptsApp(name="test-app-3")
         cmd = self.make_command(app)
@@ -120,7 +98,6 @@ class TestMxCycloptsApp:
         assert result["opts_received"] is True
         assert result["a"] == 42
 
-    @cyclops_skip
     def test_wrapper_uses_get_instance_when_no_opts_passed(self):
         app = mxCycloptsApp(name="test-app-4")
 
@@ -132,7 +109,6 @@ class TestMxCycloptsApp:
         assert result["x"] == "hello"
         assert result["common_opts_type"] == "CommonOpts"
 
-    @cyclops_skip
     def test_two_commands_on_same_app_get_independent_calls(self):
         app = mxCycloptsApp(name="test-app-5")
 
@@ -147,7 +123,6 @@ class TestMxCycloptsApp:
         assert cmd1(1)["v"] == 1
         assert cmd2(2)["v"] == 2
 
-    @cyclops_skip
     def test_decorator_with_custom_opts_class(self):
         app = mxCycloptsApp(name="test-app-6")
 
@@ -171,7 +146,6 @@ class TestMxCycloptsApp:
 class TestGetCommonOpts:
     """Accessing the current common-opts instance inside a decorated command."""
 
-    @cyclops_skip
     def test_get_commonopts_inside_decorated_function(self):
         app = mxCycloptsApp(name="test-app-7")
 
@@ -181,7 +155,6 @@ class TestGetCommonOpts:
 
         assert check_opts() == "CommonOpts"
 
-    @cyclops_skip
     def test_get_commonopts_class_inside_decorated_function(self):
         app = mxCycloptsApp(name="test-app-8")
 
@@ -220,7 +193,6 @@ class TestGetCommonOpts:
         with pytest.raises(RuntimeError, match="chiamata al di fuori"):
             app.get_commonopts_class()
 
-    @cyclops_skip
     def test_get_commonopts_returns_correct_subclass(self):
         app = mxCycloptsApp(name="test-app-11")
 
@@ -309,3 +281,15 @@ class TestCommonOptsEdgeCases:
         first_count = call_count
         CallOnceOpts.set_instance(instance)
         assert call_count == first_count
+
+class TestCliParsing:
+    """The wrapped command must parse through cyclopts itself, not just be callable."""
+
+    def test_command_parses_cli_tokens(self):
+        app = mxCycloptsApp(name="test-app-cli")
+
+        @app.command_with_commonopts()
+        def parsed_cmd(a: int):
+            return a
+
+        assert app(["parsed-cmd", "7"], exit_on_error=False, result_action="return_value") == 7
