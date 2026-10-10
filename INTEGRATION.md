@@ -66,6 +66,8 @@ mxCloudShare automates the CloudShare platform (cloud-based training and demo en
 
 - **HTTP timeout:** every request has a 60 s socket timeout (`Http.TIMEOUT_SECS`). Before 2026-10-10 there was none and `env-delete` hung for 15+ min on a stale connection after a laptop sleep. A timeout surfaces as `urllib.error.URLError`; there is still no retry.
 
+- **Suspend precondition:** the API silently ignores a suspend while VMs are still `Loading from snapshot`. `env-suspend` therefore polls until every VM is `Running` (same 6 s x 20 budget as the other waits) and prints a warning and skips the environment if that does not happen or if the environment is not `Ready`/`Preparing`. VM `statusText` values seen: `Loading from snapshot`, `Running`, `Suspended` (`Ready` is an environment-level status, not a VM one).
+
 - **Error handling:** `cs_request` in `mxcloudshare.py` raises an `Exception("status message")` for any non-2xx response. The exception is unhandled at the SDK level — the CLI does not catch it, so a failed API call surfaces as an unhandled exception to the user. The upstream legacy wrappers (`wrapper.py`, `wrapper_cls.py`) print the status and content to stdout and raise a generic `Exception('Error')`. There is no structured error type or error-code-based branching.
 
 - **Legacy-path decisions:** Two API paths in use are undocumented in the CloudShare REST API v3 reference. Per the API gap closure plan (decisions D3 and D4 in `plans/2026-10-07-api-gap-closure.md`):

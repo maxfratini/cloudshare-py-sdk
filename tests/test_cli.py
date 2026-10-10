@@ -551,3 +551,66 @@ class TestEnvWaitCondition:
             delay_secs=0, max_retry=2, operation="Timeout-test",
         )
         assert result is False
+
+# ──────────────────────────────────────────
+# Waiting for VMs Running + visible warnings on skip/timeout
+# ──────────────────────────────────────────
+
+
+class TestEnvWaitVmsRunning:
+    def test_env_without_vms_is_done_immediately(self, monkeypatch):
+        """No VMs means nothing to wait for (used to spin until timeout)."""
+        monkeypatch.setattr("mxcloudshare.mxcloudshare.get_vms", lambda eid: [])
+        assert cli.env_wait_vms_running("env-1", delay_secs=0, max_retry=2) is True
+
+    def test_waits_until_all_vms_running(self, monkeypatch):
+        polls = iter([
+            [{"name": "a", "statusText": "Loading from snapshot"}, {"name": "b", "statusText": "Running"}],
+            [{"name": "a", "statusText": "Running"}, {"name": "b", "statusText": "Running"}],
+        ])
+        monkeypatch.setattr("mxcloudshare.mxcloudshare.get_vms", lambda eid: next(polls))
+        assert cli.env_wait_vms_running("env-1", delay_secs=0, max_retry=3) is True
+
+    def test_times_out_when_a_vm_never_runs(self, monkeypatch):
+        monkeypatch.setattr("mxcloudshare.mxcloudshare.get_vms", lambda eid: [{"name": "a", "statusText": "Loading from snapshot"}])
+        assert cli.env_wait_vms_running("env-1", delay_secs=0, max_retry=2) is False
+
+
+class TestEnvSuspendGuards:
+    @pytest.fixture(autouse=True)
+    def _setup(self, monkeypatch):
+        monkeypatch.setattr(cli, "initializeApp", lambda common: None)
+        self.suspended = []
+        monkeypatch.setattr(cli.cs, "cs_env_suspend", lambda eid: self.suspended.append(eid))
+        monkeypatch.setattr(cli, "env_wait_condition", lambda *a, **k: True)
+        self.warnings = []
+        monkeypatch.setattr(cli.mxlogger, "warning", lambda msg, *a, **k: self.warnings.append(msg))
+
+    def test_waits_for_running_before_suspending(self, monkeypatch):
+        order = []
+        monkeypatch.setattr(cli.cs, "env_get_status", lambda eid: "Ready")
+        monkeypatch.setattr(cli, "env_wait_vms_running", lambda eid: order.append("wait") or True)
+        monkeypatch.setattr(cli.cs, "cs_env_suspend", lambda eid: order.append("suspend"))
+        cli.env_suspend(["env-1"])
+        assert order == ["wait", "suspend"]
+
+    def test_vms_not_running_in_time_warns_and_does_not_suspend(self, monkeypatch):
+        monkeypatch.setattr(cli.cs, "env_get_status", lambda eid: "Ready")
+        monkeypatch.setattr(cli, "env_wait_vms_running", lambda eid: False)
+        cli.env_suspend(["env-1"])
+        assert self.suspended == []
+        assert any("did not reach Running" in w for w in self.warnings)
+
+    def test_wrong_status_warns_and_does_not_suspend(self, monkeypatch):
+        monkeypatch.setattr(cli.cs, "env_get_status", lambda eid: "Suspended")
+        cli.env_suspend(["env-1"])
+        assert self.suspended == []
+        assert any("cannot be suspended" in w for w in self.warnings)
+
+    def test_resume_wrong_status_warns(self, monkeypatch):
+        monkeypatch.setattr(cli.cs, "env_get_status", lambda eid: "Ready")
+        resumed = []
+        monkeypatch.setattr(cli.cs, "cs_env_resume", lambda eid: resumed.append(eid))
+        cli.env_resume(["env-1"])
+        assert resumed == []
+        assert any("cannot be resumed" in w for w in self.warnings)
