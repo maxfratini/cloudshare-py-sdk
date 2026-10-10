@@ -1,138 +1,126 @@
-# File: typer_logger.py
+# mxLogging.py - thin layer over the stdlib logging module
+#
+# - a PRINT level (25) for application messages: above INFO, below WARNING
+# - Logger.print() to emit at that level (markup is interpreted for these messages only)
+# - setup_mxLogger() wires the "mxcloudshare" package logger to a Rich console handler on
+#   stderr (stdout stays clean for command output) and, optionally, to a log file.
+#
+# getLogger() returns a plain logging.Logger, so every call goes through the handlers
+# configured by setup_mxLogger(), including those of other modules under "mxcloudshare".
+
 import logging
 
-from rich import print as rich_print
+from rich.console import Console
+from rich.highlighter import NullHighlighter
+from rich.logging import RichHandler
+from rich.text import Text
+
+PRINT = 25
+PRINT_NAME = "PRINT"
+
+PACKAGE_LOGGER = "mxcloudshare"
+
+valid_levels = {
+    "DEBUG": logging.DEBUG,
+    "PRINT": PRINT,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
+
+_LEVEL_STYLES = {
+    logging.CRITICAL: "bold magenta",
+    logging.ERROR: "bold red",
+    logging.WARNING: "bold yellow",
+    logging.INFO: "dim",
+    logging.DEBUG: "dim",
+}
+
+# Marks the handlers installed by setup_mxLogger() so a second call replaces only those.
+_OWNED = "_mx_owned"
+
+logging.addLevelName(PRINT, PRINT_NAME)
 
 
-class mxLogger(logging.Logger):
+def _print(self: logging.Logger, message, *args, **kwargs):
+    """Log 'message % args' with severity PRINT; Rich markup is interpreted."""
+    if self.isEnabledFor(PRINT):
+        kwargs.setdefault("stacklevel", 2)
+        kwargs.setdefault("extra", {}).setdefault("markup", True)
+        self._log(PRINT, message, args, **kwargs)
+
+
+logging.Logger.print = _print
+
+
+class _ConsoleHandler(RichHandler):
+    """RichHandler that prints PRINT messages bare and others as 'LEVEL: message'."""
+
+    def __init__(self):
+        super().__init__(
+            console=Console(stderr=True, soft_wrap=True),
+            show_time=False,
+            show_level=False,
+            show_path=False,
+            markup=False,
+            highlighter=NullHighlighter(),
+        )
+
+    def render_message(self, record, message):
+        rendered = super().render_message(record, message)
+        if record.levelno == PRINT or not isinstance(rendered, Text):
+            return rendered
+        style = _LEVEL_STYLES.get(max(k for k in _LEVEL_STYLES if k <= record.levelno), "")
+        return Text.assemble((f"{record.levelname}: ", style), rendered)
+
+    def emit(self, record):
+        # RichHandler lays records out in a full-width grid, which pads every line with
+        # trailing spaces once stderr is piped or redirected. One bare line is enough here.
+        try:
+            message = self.format(record)  # includes the traceback text, if any
+            self.console.print(self.render_message(record, message), soft_wrap=True)
+        except Exception:
+            self.handleError(record)
+
+
+def getLogger(name: str | None = None) -> logging.Logger:
+    """Return the stdlib logger for `name`; without a name, the package logger."""
+    return logging.getLogger(name or PACKAGE_LOGGER)
+
+
+def setup_mxLogger(
+    log_file: str | None = None,
+    log_level: str | None = None,
+    file_mode: str = "a",
+) -> logging.Logger:
     """
-    Gestore di logging che integra il logging standard di Python con rich formatting.
-    Permette di avere output semplici su console e dettagliati su file.
-    Inoltre introduce un nuovo livello di logging denominato PRINT (25), che è superiore a INFO ma inferiore a WARNING.
-    Questo livello può essere usato per messaggi applicativi formattati, che non sono errori.
-    Esempio di utilizzo:
-        logger.print("Questo è un [bold blue]messaggio[/bold blue] di print.")
+    Configure the package logger. Safe to call repeatedly: handlers from a previous call are replaced.
+
+    Args:
+        log_file: path of a log file (full timestamps, names and levels). None logs to the console only.
+        log_level: one of valid_levels (case-insensitive). Unknown names fall back to INFO.
+        file_mode: 'a' to append to the log file, 'w' to truncate it.
     """
+    logger = logging.getLogger(PACKAGE_LOGGER)
 
-    # Definisci un livello di logging personalizzato per PRINT, superiore ad info ma inferiore a warning
-    # Questo livello può essere usato per sostituire la print per messaggi applicativi che non sono errori
-    PRINT = 25
-    PRINT_NAME = "PRINT"
+    for handler in logger.handlers[:]:
+        if getattr(handler, _OWNED, False):
+            logger.removeHandler(handler)
+            handler.close()
 
-    valid_levels = {
-        "DEBUG": logging.DEBUG,
-        "PRINT": PRINT,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
+    logger.setLevel(valid_levels.get((log_level or "INFO").upper(), logging.INFO))
+    # Own the output: don't also hand records to the root logger's handlers.
+    logger.propagate = False
 
-    class mxLogHandler(logging.Handler):
-        """Handler di logging personalizzato che utilizza rich_print con messaggi concisi"""
+    handlers: list[logging.Handler] = [_ConsoleHandler()]
+    if log_file:
+        file_handler = logging.FileHandler(log_file, mode=file_mode)
+        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+        handlers.append(file_handler)
 
-        def emit(self, record):
-            # Estrai solo il messaggio senza formattazione timestamp/livello
-            msg = record.getMessage()
+    for handler in handlers:
+        setattr(handler, _OWNED, True)
+        logger.addHandler(handler)
 
-            # Usa colori diversi in base al livello di log
-            if record.levelno >= logging.CRITICAL:
-                rich_print(f"[bold magenta]CRITICAL:[/bold magenta] {msg}")  # Critical in viola
-            elif record.levelno >= logging.ERROR:
-                rich_print(f"[bold red]ERROR:[/bold red] {msg}")  # Errori in rosso
-            elif record.levelno >= logging.WARNING:
-                rich_print(f"[bold yellow]WARNING:[/bold yellow] {msg}")  # Warning in giallo
-            elif record.levelno >= mxLogger.PRINT:
-                rich_print(f"{msg}")  # Nuovo livello PRINT a console, non colorato (si lascia le colorazione a chi lo usa)
-            elif record.levelno >= logging.INFO:
-                rich_print(f"[bold gray]INFO:[/bold gray] {msg}")  # Info in grigio
-            else:  # DEBUG
-                rich_print(f"[bold white]DEBUG:[/bold white] {msg}")  # Debug in bianco
-
-    def __init__(self, name: str | None = None, log_file: str | None = None, log_level: str = "INFO", file_mode: str = "a"):
-        """
-        Inizializza il logger.
-
-        Args:
-            name (str, optional): Nome del logger. Se None, usa il logger root.
-            log_file (str, optional): Percorso del file di log. Se None, scrive solo su console.
-            log_level (int, optional): Livello di logging. Default è INFO.
-            file_mode (str, optional): Modalità apertura file ('a' per append, 'w' per sovrascrivere).
-        """
-        # print(f"INIT: {name} - log_file: {log_file} - log_level: {log_level} - file_mode: {file_mode}")
-        # if name is None:
-        #     raise ValueError("Il nome del logger è obbligatorio.")
-
-        # Inizializza il logger base
-        super().__init__(name)
-
-        # Add PRINT level
-        logging.addLevelName(self.PRINT, self.PRINT_NAME)
-        logging.Logger.print = self.print
-
-        # Ottieni il logger (root o specifico)
-        if name:
-            self.logger = logging.getLogger(name)
-        else:
-            self.logger = logging.getLogger()
-
-        # Rimuovi tutti gli handler esistenti
-        for handler in self.logger.handlers[:]:
-            self.logger.removeHandler(handler)
-
-        # Aggiungi sempre un handler per la console
-        console_handler = self.mxLogHandler()
-
-        # Nessun formatter per il console_handler - userà solo il messaggio puro
-        self.logger.addHandler(console_handler)
-
-        self.setup_mxLogger(log_file=log_file, log_level=log_level, file_mode=file_mode)
-
-        return
-
-    def get_logger(self):
-        """Restituisce l'oggetto logger configurato"""
-        return self.logger
-
-    def setup_mxLogger(
-        self,
-        log_file: str | None = None,
-        log_level: str | None = None,
-        file_mode: str = "a",
-    ):
-        """
-        Configura il logger con i parametri specificati.
-        Args:
-            log_file (str, optional): Percorso del file di log. Se None, scrive solo su console.
-            loglevel (str, optional): Livello di logging. Default è INFO.
-            file_mode (str, optional): Modalità apertura file ('a' per append, 'w' per sovrascrivere).
-        """
-        # controlla il livello di logging
-        self.log_level = self.valid_levels.get(log_level.upper(), logging.INFO)
-        self.logger.setLevel(self.log_level)
-
-        self.log_file = log_file
-        if log_file:
-            # Se è specificato un file, crea un FileHandler con formatter completo
-            file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-            file_handler = logging.FileHandler(log_file, mode=file_mode)
-            file_handler.setFormatter(file_formatter)
-            self.logger.addHandler(file_handler)
-
-        return self.logger
-
-    def print(self, message, *args, **kwargs):
-        """
-        Log 'msg % args' with severity 'PRINT'.
-        """
-        self.logger.log(self.PRINT, message)
-
-
-def getLogger(name: str | None = None):
-    """
-    Ottieni un logger con il nome specificato.
-    """
-    if name is None:
-        name = "root"
-
-    return mxLogger(name)
+    return logger

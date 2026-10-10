@@ -15,7 +15,7 @@ mxCloudShare is a CLI and SDK for automating the CloudShare REST API v3. It is m
 | Typed SDK | Named helpers (`cs_<resource>_<verb>`) wrapping the HTTP layer; generic escape hatch `cs_api_call`; auth key management via `cs_set_auth_keys` | `mxcloudshare/mxcloudshare.py` |
 | HTTP layer | Raw request construction (`Requester._build_url`, `_build_headers`), CS-SHA1 HMAC authentication (`authentication_parameter_provider.py`, `hmacer.py`, `token_generator.py`), URL-encoded query parameter serialization, JSON response parsing | `mxcloudshare/cloudshare/` — `requester.py`, `http.py` (stdlib `urllib.request`), `ioc.py` (DI wiring), `authentication_parameter_provider.py`, `hmacer.py`, `token_generator.py` |
 | Legacy wrappers | Two parallel (unified) wrappers providing name-to-ID resolution plus higher-level workflows like `create_env_from_bp_using_names`. **Note:** these are the original upstream SDK modules and are *not* used by the modern CLI/SDK path — the CLI calls `mxcloudshare.py` helpers, which call `cloudshare.req` directly. | `mxcloudshare/cloudshare/wrapper.py` (functional), `mxcloudshare/cloudshare/wrapper_cls.py` (OOP `Wrapper` class) |
-| Utilities | Custom logging (`mxLogger` with a `PRINT` level at 25 and Rich console output), Cyclopts framework extensions (`CommonOpts` base class, `mxCycloptsApp` with `command_with_commonopts`) | `mxcloudshare/mxutils/mxLogging.py`, `mxcloudshare/mxutils/mxCyclopts.py` |
+| Utilities | Logging (stdlib `logging` configured by `mxLogging.setup_mxLogger`: a `PRINT` level at 25, a Rich console handler on **stderr**, optional file handler; `getLogger()` returns a plain `logging.Logger`), Cyclopts framework extensions (`CommonOpts` base class, `mxCycloptsApp` with `command_with_commonopts`) | `mxcloudshare/mxutils/mxLogging.py`, `mxcloudshare/mxutils/mxCyclopts.py` |
 
 ## Data flow
 
@@ -23,7 +23,7 @@ A CLI invocation flows through four stages:
 
 1. **CLI command** — Cyclopts parses the command name and arguments. Every command has a `common: mxCommonOpts | None` parameter that captures `--outformat`, `--tablewidth`, `--keyfile`, `--loglevel`, and `--logfile`. The command calls `initializeApp(common)`.
 
-2. **`initializeApp`** — Sets up the `mxLogger` (logging level and optional file), calls `loadKeys()` to resolve CloudShare credentials (priority: `--keyfile` argument > environment variables `CLOUDSHARE_API_ID`/`CLOUDSHARE_API_KEY` > `./cloudshare.env` file), stores them in an `AppConfig` dataclass, and propagates them into the SDK globals via `cs.cs_set_auth_keys(api_id, api_key)`.
+2. **`initializeApp`** — Configures the `mxcloudshare` package logger (`mxLogging.setup_mxLogger`: level and optional file; idempotent, since it runs for every command), calls `loadKeys()` to resolve CloudShare credentials (priority: `--keyfile` argument > environment variables `CLOUDSHARE_API_ID`/`CLOUDSHARE_API_KEY` > `./cloudshare.env` file), stores them in an `AppConfig` dataclass, and propagates them into the SDK globals via `cs.cs_set_auth_keys(api_id, api_key)`.
 
 3. **SDK helper** — The command calls one or more `cs_*` helper functions from `mxcloudshare/mxcloudshare.py`. Each helper constructs an endpoint path, calls `cs_get`/`cs_post`/`cs_put`/`cs_delete` (which all delegate to `cs_request`), and returns parsed JSON. For commands that involve status transitions (suspend, resume, delete, revert), the CLI polls with `env_wait_condition`, which calls `cs.get_vms(envId)` in a loop until VM `statusText` matches the target state or a retry limit is reached.
 

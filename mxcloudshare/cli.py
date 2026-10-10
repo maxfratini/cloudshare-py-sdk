@@ -89,13 +89,13 @@ def initializeApp(commopts: mxCommonOpts | None) -> AppConfig:
     if commopts is None:
         commopts = mxCommonOpts()
 
-    mxlogger.setup_mxLogger(log_file=commopts.logfile, log_level=commopts.loglevel)
+    mxLogging.setup_mxLogger(log_file=commopts.logfile, log_level=commopts.loglevel)
     if commopts.loglevel.upper() in ["INFO", "DEBUG"]:
-        mxlogger.info("LogLevel is set to %s", logging.getLevelName(logging.getLogger().getEffectiveLevel()))
+        mxlogger.info("LogLevel is set to %s", logging.getLevelName(mxlogger.getEffectiveLevel()))
 
     # Load auth keys
     _API_ID, _API_KEY = loadKeys(commopts.keyfile)
-    mxlogger.debug(f"Loaded API_ID: {_API_ID} and API_KEY: {_API_KEY}")
+    mxlogger.debug("Loaded API credentials (API_ID ending in ...%s)", str(_API_ID)[-4:])
 
     config = AppConfig(
         outputformat=commopts.outformat,
