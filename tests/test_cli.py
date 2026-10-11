@@ -426,6 +426,17 @@ class TestFilterFields:
 # ──────────────────────────────────────────
 
 
+class TestOutFormatOption:
+    @pytest.mark.parametrize("value", ["csv", "json", "table", "card"])
+    def test_accepts_documented_values(self, value):
+        _, bound, _ = cli.cs_app.parse_args(["blueprint-list", "--outformat", value])
+        assert bound.arguments["common"].outformat == cli.OutFormat(value)
+
+    def test_rejects_unknown_value(self):
+        with pytest.raises(SystemExit):
+            cli.cs_app.parse_args(["blueprint-list", "--outformat", "tabel"])
+
+
 class TestVersionFlag:
     def test_version_is_configured(self):
         assert cli.cs_app.version is not None

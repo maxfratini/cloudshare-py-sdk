@@ -31,10 +31,10 @@ cs_app = App(name="mxCloudShare", help="Cloudshare automation tool", version=_VE
 
 
 class OutFormat(str, Enum):
-    csv_fmt = "csv"
-    json_fmt = "json"
-    table_fmt = "table"
-    card_fmt = "card"
+    csv = "csv"
+    json = "json"
+    table = "table"
+    card = "card"
 
 
 class EnvStatus(str, Enum):
@@ -50,7 +50,7 @@ class EnvStatus(str, Enum):
 @dataclass
 class AppConfig:
     """Application configuration. Replaces the globalconf mutable dict."""
-    outputformat: str = OutFormat.json_fmt
+    outputformat: OutFormat = OutFormat.json
     tablewidth: int = 80
     api_id: str = None
     api_key: str = None
@@ -60,7 +60,7 @@ class AppConfig:
 @dataclass
 class mxCommonOpts:
     # sfrutta le annotazioni di tipo (type hints) e docstring su singola riga in un formato particolare supportato da Cyclopts.
-    outformat: str = OutFormat.json_fmt
+    outformat: OutFormat = OutFormat.json
     "Set output format."
 
     tablewidth: int = 80
@@ -268,7 +268,7 @@ def print_results(data, config: AppConfig = None, columns=None):
     # Get output format from config
     outputformat = config.outputformat
     
-    if outputformat == OutFormat.csv_fmt:
+    if outputformat == OutFormat.csv:
         # CSV output using stdlib csv for proper quoting
         import csv
         import io
@@ -280,13 +280,13 @@ def print_results(data, config: AppConfig = None, columns=None):
             writer.writerow(row)
         console = Console(width=config.tablewidth)
         console.print(output.getvalue())
-    elif outputformat == OutFormat.json_fmt:
+    elif outputformat == OutFormat.json:
         # JSON output
         import json
         out = json.dumps(data, indent=2)
         console = Console(width=config.tablewidth)
         console.print_json(out)
-    elif outputformat == OutFormat.card_fmt:
+    elif outputformat == OutFormat.card:
         # Card format - simple key-value pairs
         if len(data) == 1:
             item = data[0]
