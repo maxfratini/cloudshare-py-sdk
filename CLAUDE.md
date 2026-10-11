@@ -10,7 +10,7 @@ mxCloudShare (Python 3.11+, uv-managed, hatchling-packaged) — CLI and SDK for 
 ## Core rules (always apply)
 
 - `make check` runs lint (ruff) + test (pytest) — run before considering a change complete.
-- All tests run offline (mock `cloudshare.req`). The single integration test is skipped unless `CLOUDSHARE_API_ID` / `CLOUDSHARE_API_KEY` are exported.
+- All tests run offline (mock `cloudshare.req`). The integration suite (`make integration`) is skipped unless `CLOUDSHARE_API_ID` / `CLOUDSHARE_API_KEY` are exported.
 - Companion docs (ARCHITECTURE.md, INTEGRATION.md, USER_GUIDE.md) are append-only in substance: update in the same change as the code that invalidates them.
 - Tracked items (PROGRESS.md, OPEN_ISSUES.md, plans/README.md) use tables with fixed-status vocabulary; see each file's own Columns note.
 

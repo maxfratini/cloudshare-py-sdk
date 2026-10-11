@@ -666,12 +666,12 @@ def policy_list(
 @cs_app.command()
 def env_create(
     blueprint_id: Annotated[str, Parameter(help="Blueprint ID to create environment from")],
-    project_id: Annotated[str, Parameter(help="Project ID to create the environment in")],
-    region_id: Annotated[str, Parameter(help="Region ID (the blueprint needs a snapshot there)")],
-    policy_id: Annotated[str, Parameter(help="Policy ID to use (must belong to the project)")] = None,
+    policy_id: Annotated[str, Parameter(help="Policy ID to use (required; must belong to the project)")] = None,
     name: Annotated[str, Parameter(help="Name for the new environment")] = None,
     description: Annotated[str, Parameter(help="Description for the new environment")] = None,
     count: Annotated[int, Parameter(help="Number of environments to create")] = 1,
+    region_id: Annotated[str | None, Parameter(help="Region ID (see region-list); required by the API, and the blueprint needs a snapshot there")] = None,
+    project_id: Annotated[str | None, Parameter(help="Project ID; looked up from the policy if omitted")] = None,
     *,
     json_input: Annotated[str | None, Parameter(name=["--json"], help='JSON string or @file.json path with creation params (merged over individual params)')] = None,
     common: mxCommonOpts | None = None,

@@ -188,13 +188,13 @@ class TestCsEnvCreate:
     """Test cs_env_create helper."""
 
     @patch("mxcloudshare.mxcloudshare.cloudshare.req")
-    def test_sends_post_to_envs_with_minimal_body(self, mock_req):
+    def test_sends_post_envs_with_required_fields_only(self, mock_req):
         mock_req.return_value = make_mock_response({"environmentId": "env-1"})
-        cs.cs_env_create("bp-1", name="MyEnv", project_id="pr-1", region_id="re-1")
+        cs.cs_env_create("bp-1", policy_id="pol-1", project_id="pr-1", region_id="re-1")
         assert mock_req.call_args[1]["method"] == "POST"
         assert mock_req.call_args[1]["path"] == "/envs"
         assert mock_req.call_args[1]["content"] == {
-            "environment": {"name": "MyEnv", "projectId": "pr-1", "regionId": "re-1"},
+            "environment": {"projectId": "pr-1", "regionId": "re-1", "policyId": "pol-1"},
             "itemsCart": [{"type": 1, "blueprintId": "bp-1"}],
         }
 
@@ -204,10 +204,36 @@ class TestCsEnvCreate:
         cs.cs_env_create("bp-1", policy_id="pol-1", name="MyEnv", description="Test env",
                          project_id="pr-1", region_id="re-1", snapshot_id="ss-1")
         assert mock_req.call_args[1]["content"] == {
-            "environment": {"name": "MyEnv", "projectId": "pr-1", "regionId": "re-1",
-                            "policyId": "pol-1", "description": "Test env"},
+            "environment": {"projectId": "pr-1", "regionId": "re-1", "policyId": "pol-1",
+                            "name": "MyEnv", "description": "Test env"},
             "itemsCart": [{"type": 1, "blueprintId": "bp-1", "snapshotId": "ss-1"}],
         }
+
+    def test_requires_policy_id(self):
+        with pytest.raises(ValueError, match="policy_id"):
+            cs.cs_env_create("bp-1", project_id="pr-1", region_id="re-1")
+
+    def test_requires_region_id(self):
+        with pytest.raises(ValueError, match="region_id"):
+            cs.cs_env_create("bp-1", policy_id="pol-1", project_id="pr-1")
+
+    @patch("mxcloudshare.mxcloudshare.cloudshare.req")
+    def test_looks_up_project_from_the_policy(self, mock_req):
+        """The blueprint is not checked: it may belong to another project than the policy."""
+        mock_req.side_effect = [
+            make_mock_response([{"id": "pr-1"}, {"id": "pr-2"}]),   # GET projects
+            make_mock_response([{"id": "pol-other"}]),               # pr-1 policies: no match
+            make_mock_response([{"id": "pol-1"}]),                   # pr-2 policies: match
+            make_mock_response({"environmentId": "env-1"}),          # POST envs
+        ]
+        cs.cs_env_create("bp-1", policy_id="pol-1", region_id="re-1")
+        assert mock_req.call_args[1]["content"]["environment"]["projectId"] == "pr-2"
+
+    @patch("mxcloudshare.mxcloudshare.cloudshare.req")
+    def test_unknown_policy_raises(self, mock_req):
+        mock_req.side_effect = [make_mock_response([{"id": "pr-1"}]), make_mock_response([{"id": "pol-other"}])]
+        with pytest.raises(ValueError, match="No project contains policy"):
+            cs.cs_env_create("bp-1", policy_id="pol-1", region_id="re-1")
 
 
 # ──────────────────────────────────────────

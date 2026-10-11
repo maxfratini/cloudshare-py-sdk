@@ -10,7 +10,7 @@
 
 | ID       | Status      | Description                     | Notes                                | Opened     | Closed     | File                              |
 |----------|-------------|---------------------------------|--------------------------------------|------------|------------|-----------------------------------|
-| PLAN-001 | done        | Project review & stability/quality/DX/robustness plan | P2/P3/P4 all landed: auth refactor, wrapper unify, CSV, dedupe, --version, --dry-run, --json, progress bar, docs, smoke test, tests. P4-1 blocked (sandbox creds). mxCyclopts skip noted. | 2026-10-07 | 2026-10-07 | `2026-10-07-cloudshare-review.md` |
+| PLAN-001 | done        | Project review & stability/quality/DX/robustness plan | P2/P3/P4 all landed: auth refactor, wrapper unify, CSV, dedupe, --version, --dry-run, --json, progress bar, docs, smoke test, tests. P4-1 integration suite landed and verified live 2026-10-09 (ISS-006); it found the broken `POST /envs/actions/create` path, fixed in `cs_env_create`. mxCyclopts skip noted. | 2026-10-07 | 2026-10-07 | `2026-10-07-cloudshare-review.md` |
 | PLAN-002 | done        | Close API coverage gaps vs CloudShare v3 (lifecycle, snapshots, VM ops, training, long tail) | All lanes L1–L7 + Phase 3 landed: 74 helpers, ~63 CLI commands, 189 tests, make check green | 2026-10-07 | 2026-10-07 | `2026-10-07-api-gap-closure.md`   |
 
 **Columns**

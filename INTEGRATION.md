@@ -74,7 +74,7 @@ mxCloudShare automates the CloudShare platform (cloud-based training and demo en
 
 - **Legacy-path decisions:** Two API paths in use are undocumented in the CloudShare REST API v3 reference. Per the API gap closure plan (decisions D3 and D4 in `plans/2026-10-07-api-gap-closure.md`):
   - `/blueprints` and `/policies` — These flat-list endpoints are kept working unchanged. The project also provides project-scoped alternatives (`GET /projects/{id}/blueprints`, `GET /projects/{id}/policies`) that are documented.
-  - `POST /envs/actions/create` — **Removed.** Live testing (2026-10-10) showed it returns `404 No HTTP resource was found`. `cs_env_create` now uses the documented `POST /envs` with body `{"environment": {name, projectId, regionId, policyId?, description?}, "itemsCart": [{"type": 1, "blueprintId": ..., "snapshotId"?: ...}]}`. `projectId` and `regionId` are required; the blueprint must have a snapshot in that region (else `404 Snapshot not found in specified region`) and the policy must belong to the project (else `500 Mismatching Project ...`). Response carries `environmentId`.
+  - `POST /envs/actions/create` — No longer used. It returns 404 on the live API; `cs_env_create` uses the documented `POST /envs` with `{environment, itemsCart}`. A blueprint-based create needs `projectId`, `regionId` and `policyId` (the API answers 500 without a policy); if you omit `projectId`, `cs_env_create` picks the project that owns the policy. The policy must belong to the target project (else `500 Mismatching Project for this UP and the Specified EnvironmentPolicy`), whereas the blueprint may come from another project (verified live: a blueprint listed under one project was used to create an environment in another).
 
 - **Docs:** The official CloudShare REST API v3 reference is at <https://docs.cloudshare.com/rest-api/v3/>.
 
@@ -83,20 +83,17 @@ mxCloudShare automates the CloudShare platform (cloud-based training and demo en
 Integration tests (`tests/test_integration.py`) require real CloudShare credentials and are skipped by default. To run them:
 
 ```bash
-export CLOUDSHARE_API_ID=<your-api-id>
-export CLOUDSHARE_API_KEY=<your-api-key>
-uv run pytest tests/test_integration.py -v
+make integration    # exports the credentials from ./cloudshare.env, then runs the suite
 ```
 
-Tests that change state are opt-in and never pick an environment from the account listing. Point them at disposable environments:
+Or export `CLOUDSHARE_API_ID` / `CLOUDSHARE_API_KEY` yourself and run `uv run pytest tests/test_integration.py -v`.
 
-| Variable | Enables |
-|---|---|
-| `CLOUDSHARE_TEST_ENV_ID` | suspend / resume / snapshot-take on that environment |
-| `CLOUDSHARE_TEST_DELETE_ENV_ID` | delete test — **destroys** that environment |
-| `CLOUDSHARE_TEST_{BLUEPRINT,PROJECT,REGION,POLICY}_ID` | create-then-delete test (use a 0-VM blueprint such as "Delphix empty environment") |
+The suite is read-only by default. Two opt-ins exist, and neither ever picks an environment from the account listing:
 
-`test_snapshot_take` skips itself when the account gets `403 Permission denied` on the test environment.
+- `CLOUDSHARE_TEST_ENV_ID` — suspend/resume/snapshot tests run against that disposable environment.
+- `CLOUDSHARE_TEST_BLUEPRINT_ID`, `CLOUDSHARE_TEST_REGION_ID`, `CLOUDSHARE_TEST_POLICY_ID` (all three) — the lifecycle test creates its own uniquely named environment, suspends and resumes it, and deletes it in a `finally`. This is the only delete in the suite and it takes about 3 minutes. If a run is killed mid-way, delete the leftover `mxcs-integration-test-*` environment by hand.
+
+Snapshot-take is skipped when the account gets `403 Permission denied`.
 
 All other tests run entirely offline. They mock `mxcloudshare.mxcloudshare.cloudshare.req` with `unittest.mock`:
 

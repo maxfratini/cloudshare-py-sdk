@@ -68,12 +68,22 @@ mxcloudshare vm-remote-access --vmid <vm-id>
 mxcloudshare blueprint-list [--project-id <id>]
 mxcloudshare policy-list [--project-id <id>]
 
-# Class & training (Phase 2)
+# Classes, students, instructors
 mxcloudshare class-list --fields id,name --pattern '^Lab'
+mxcloudshare class-sendinvitations --help
+mxcloudshare class-suspend-all --help
+mxcloudshare class-delete-all --help
+mxcloudshare class-sponsoredlink --help
+mxcloudshare student-list --help        # also student-get/create/update/delete
+mxcloudshare instructor-list --help     # also instructor-create/delete
+
+# Long tail: webhook-*, permalink-*, team-*, invite-*, login-url, ping,
+# region-list, timezone-list, public-cloud-get, shared-env-get
+mxcloudshare webhook-list
 
 # Generic API escape hatch (reaches 100% of endpoints)
 mxcloudshare api-call GET /envs --query limit=20
-mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
+mxcloudshare api-call POST /envs --body '{"environment":{"name":"demo","projectId":"...","policyId":"...","regionId":"..."},"itemsCart":[{"type":1,"blueprintId":"..."}]}'
 ```
 
 The generic `api-call` command accepts any HTTP method and path, plus
@@ -99,12 +109,13 @@ envs = cs.cs_env_get_all()
 
 # Generic API call — reaches every documented endpoint
 result = cs.cs_api_call("GET", "/envs", queryParams={"limit": "20"})
-result = cs.cs_env_create("BP...", name="demo", project_id="PR...", region_id="RE...")
+result = cs.cs_env_create("BP...", policy_id="PO...", region_id="RE...", name="demo")  # project looked up from the policy
 ```
 
-~46 typed helpers cover the most common endpoints (environments, VMs, snapshots,
-blueprints, policies, classes, students), each with full signatures and
-docstrings. For anything else, `cs.cs_api_call(...)` is the generic escape hatch.
+74 typed `cs_*` helpers cover environments, VMs, snapshots, projects, blueprints,
+policies, classes, students, instructors, webhooks, permalinks, teams and
+utilities, each with a one-line docstring. For anything else,
+`cs.cs_api_call(...)` is the generic escape hatch.
 
 See the full [REST API v3 docs](https://docs.cloudshare.com/rest-api/v3/).
 
@@ -119,9 +130,12 @@ make check    # lint + test
 make help     # list all targets
 ```
 
-Tests run entirely offline. The single integration test
-(`tests/test_integration.py`) is skipped unless `CLOUDSHARE_API_ID` and
-`CLOUDSHARE_API_KEY` are exported.
+Tests run entirely offline. `tests/test_integration.py` is skipped unless
+`CLOUDSHARE_API_ID` and `CLOUDSHARE_API_KEY` are exported; `make integration`
+exports them from `cloudshare.env` and runs it. It is read-only by default. The
+suspend/resume/snapshot tests run only when `CLOUDSHARE_TEST_ENV_ID` names a
+disposable environment, and the create/delete lifecycle test only when
+`CLOUDSHARE_TEST_{BLUEPRINT,REGION,POLICY}_ID` are set (see `INTEGRATION.md`).
 
 
 Building binaries
