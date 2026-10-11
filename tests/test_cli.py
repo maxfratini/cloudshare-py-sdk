@@ -397,9 +397,12 @@ class TestFilterFields:
         cli._filter_fields(data, [], False)
         assert data == [{"id": "1", "name": "a"}]
 
-    def test_availfields_exits(self):
-        with pytest.raises(SystemExit):
-            cli._filter_fields([{"a": 1}], [], True)
+    def test_availfields_returns_none_without_exiting(self):
+        # sys.exit would kill the interactive shell
+        assert cli._filter_fields([{"a": 1}], [], True) is None
+
+    def test_accepts_single_dict(self):
+        assert cli._filter_fields({"id": "1", "x": 2}, ["id"], False) == [{"id": "1"}]
 
 
 # ──────────────────────────────────────────
