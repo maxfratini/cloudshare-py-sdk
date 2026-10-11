@@ -171,7 +171,7 @@ def _filter_fields(data, field, availfields):
     Args:
         data: List of dicts (or a single dict) to filter
         field: List of field names to keep (empty list = keep all)
-        availfields: If True, log available keys and return None
+        availfields: If True, print available keys (one per line) and return None
 
     Returns:
         Filtered list of dicts, or None when availfields was requested (the
@@ -183,7 +183,7 @@ def _filter_fields(data, field, availfields):
 
     if availfields:
         all_keys = set().union(*(d.keys() for d in data))
-        mxlogger.info(all_keys)
+        print("\n".join(sorted(all_keys)))
         return None
 
     if field:

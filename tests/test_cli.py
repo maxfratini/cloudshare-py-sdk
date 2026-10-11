@@ -397,9 +397,10 @@ class TestFilterFields:
         cli._filter_fields(data, [], False)
         assert data == [{"id": "1", "name": "a"}]
 
-    def test_availfields_returns_none_without_exiting(self):
+    def test_availfields_returns_none_without_exiting(self, capsys):
         # sys.exit would kill the interactive shell
-        assert cli._filter_fields([{"a": 1}], [], True) is None
+        assert cli._filter_fields([{"b": 1}, {"a": 2}], [], True) is None
+        assert capsys.readouterr().out == "a\nb\n"
 
     def test_accepts_single_dict(self):
         assert cli._filter_fields({"id": "1", "x": 2}, ["id"], False) == [{"id": "1"}]
