@@ -135,11 +135,14 @@ def _flatten_dict(d, parent_key='', sep='.'):
     return dict(items)
 
 
-def _dict_to_rows(data):
+def _dict_to_rows(data, columns=None):
     """Convert data (list of dicts or single dict) into flattened rows.
     
     Args:
         data: List of dicts or single dict to convert
+        columns: Optional list of top-level field names giving the column
+            order (nested keys ``a.b`` follow their top-level ``a``). Columns
+            not listed come last. Default: alphabetical.
     
     Returns:
         Tuple of (rows, column_names) where rows is list of lists and column_names is list of strings
@@ -153,8 +156,9 @@ def _dict_to_rows(data):
     for flat_dict in flattened_data:
         all_keys.update(flat_dict.keys())
     
-    # Sort keys for consistent column order
-    column_names = sorted(all_keys)
+    # Sort keys for consistent column order; requested fields come first, in the order given
+    order = {name: i for i, name in enumerate(columns or [])}
+    column_names = sorted(all_keys, key=lambda k: (order.get(k.split('.')[0], len(order)), k))
     
     # Create rows
     rows = []
@@ -174,7 +178,7 @@ def _filter_fields(data, field, availfields):
         availfields: If True, print available keys (one per line) and return None
 
     Returns:
-        Filtered list of dicts, or None when availfields was requested (the
+        Filtered list of dicts (keys in the order of ``field``), or None when availfields was requested (the
         caller should stop without printing results). Does not call sys.exit,
         so the interactive shell survives.
     """
@@ -187,10 +191,8 @@ def _filter_fields(data, field, availfields):
         return None
 
     if field:
-        for item in data:
-            unwanted = set(item) - set(field)
-            for unwanted_key in unwanted:
-                del item[unwanted_key]
+        # Rebuild each item in the order the fields were requested
+        data = [{k: item[k] for k in field if k in item} for item in data]
 
     return data
 
@@ -248,12 +250,13 @@ def print_as_table(d, config: AppConfig = None):
     console.print(table)
 
 
-def print_results(data, config: AppConfig = None):
+def print_results(data, config: AppConfig = None, columns=None):
     """Display results with support for multiple output formats
     
     Args:
         data: Data to display (list or dict)
         config: Application configuration (holds outputformat setting)
+        columns: Optional top-level field names giving the column order
     """
     # Provide default config if not given
     if config is None:
@@ -269,7 +272,7 @@ def print_results(data, config: AppConfig = None):
         # CSV output using stdlib csv for proper quoting
         import csv
         import io
-        rows, column_names = _dict_to_rows(data)
+        rows, column_names = _dict_to_rows(data, columns)
         output = io.StringIO()
         writer = csv.writer(output, quoting=csv.QUOTE_ALL)
         writer.writerow(column_names)
@@ -292,19 +295,20 @@ def print_results(data, config: AppConfig = None):
                 console.print(f"[bold]{key}[/bold]: {value}")
         else:
             # Table format for multiple items
-            print_results(data, config)  # Recurse with table format
+            print_results(data, config, columns)  # Recurse with table format
     else:
         # Default to table format (including "table" and any unrecognized format)
-        show_results(data, config=config)
+        show_results(data, config=config, columns=columns)
 
 
-def show_results(data, title=None, config: AppConfig = None):
+def show_results(data, title=None, config: AppConfig = None, columns=None):
     """Display results in a formatted table
     
     Args:
         data: Data to display (list or dict)
         title: Optional title for the table
         config: Application configuration
+        columns: Optional top-level field names giving the column order
     """
     # Provide default config if not given
     if config is None:
@@ -316,7 +320,7 @@ def show_results(data, title=None, config: AppConfig = None):
         data = [data]
 
     # Convert data to rows without pandas
-    rows, column_names = _dict_to_rows(data)
+    rows, column_names = _dict_to_rows(data, columns)
     
     table = Table(show_header=True, header_style="bold", title=title)
     
@@ -601,7 +605,7 @@ def env_get_vms_info(
     if machines is None:
         return
 
-    print_results(machines, config)
+    print_results(machines, config, columns=field)
 
 
 @cs_app.command()
@@ -622,7 +626,7 @@ def env_get_info(
     if e is None:
         return
 
-    print_results(e, config)
+    print_results(e, config, columns=field)
 
 
 @cs_app.command()
@@ -648,7 +652,7 @@ def blueprint_list(
     if blueprints is None:
         return
 
-    print_results(blueprints, config)
+    print_results(blueprints, config, columns=field)
 
 
 @cs_app.command()
@@ -673,7 +677,7 @@ def policy_list(
     if policies is None:
         return
 
-    print_results(policies, config)
+    print_results(policies, config, columns=field)
 
 
 @cs_app.command()

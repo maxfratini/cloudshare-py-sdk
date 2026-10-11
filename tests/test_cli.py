@@ -389,18 +389,33 @@ class TestCsvOutput:
 class TestFilterFields:
     def test_keeps_selected_fields(self):
         data = [{"id": "1", "name": "a", "other": "x"}]
-        cli._filter_fields(data, ["id", "name"], False)
-        assert data == [{"id": "1", "name": "a"}]
+        assert cli._filter_fields(data, ["id", "name"], False) == [{"id": "1", "name": "a"}]
+
+    def test_keys_follow_requested_order(self):
+        data = [{"id": "1", "name": "a", "other": "x"}]
+        out = cli._filter_fields(data, ["name", "id"], False)
+        assert list(out[0]) == ["name", "id"]
+
+    def test_unknown_field_is_skipped(self):
+        assert cli._filter_fields([{"id": "1"}], ["nope", "id"], False) == [{"id": "1"}]
 
     def test_keeps_all_when_no_field_list(self):
         data = [{"id": "1", "name": "a"}]
-        cli._filter_fields(data, [], False)
-        assert data == [{"id": "1", "name": "a"}]
+        assert cli._filter_fields(data, [], False) == [{"id": "1", "name": "a"}]
 
     def test_availfields_returns_none_without_exiting(self, capsys):
         # sys.exit would kill the interactive shell
         assert cli._filter_fields([{"b": 1}, {"a": 2}], [], True) is None
         assert capsys.readouterr().out == "a\nb\n"
+
+    def test_dict_to_rows_columns_order(self):
+        rows, cols = cli._dict_to_rows([{"a": 1, "b": {"x": 2}, "c": 3}], ["c", "b", "a"])
+        assert cols == ["c", "b.x", "a"]
+        assert rows == [["3", "2", "1"]]
+
+    def test_dict_to_rows_default_alphabetical(self):
+        _, cols = cli._dict_to_rows([{"b": 1, "a": 2}])
+        assert cols == ["a", "b"]
 
     def test_accepts_single_dict(self):
         assert cli._filter_fields({"id": "1", "x": 2}, ["id"], False) == [{"id": "1"}]
