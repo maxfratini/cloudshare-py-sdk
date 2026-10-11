@@ -166,20 +166,25 @@ def _dict_to_rows(data):
 
 
 def _filter_fields(data, field, availfields):
-    """Filter data to show only specified fields, or show available fields and exit.
-    
+    """Filter data to show only specified fields, or show available fields.
+
     Args:
-        data: List of dicts to filter
+        data: List of dicts (or a single dict) to filter
         field: List of field names to keep (empty list = keep all)
-        availfields: If True, print available keys and exit
-    
+        availfields: If True, log available keys and return None
+
     Returns:
-        Filtered list of dicts (in-place modification of input)
+        Filtered list of dicts, or None when availfields was requested (the
+        caller should stop without printing results). Does not call sys.exit,
+        so the interactive shell survives.
     """
+    if isinstance(data, dict):
+        data = [data]
+
     if availfields:
         all_keys = set().union(*(d.keys() for d in data))
         mxlogger.info(all_keys)
-        sys.exit()
+        return None
 
     if field:
         for item in data:
@@ -592,7 +597,9 @@ def env_get_vms_info(
     config = initializeApp(common)
 
     machines = cs.get_vms(envid)
-    _filter_fields(machines, field, availfields)
+    machines = _filter_fields(machines, field, availfields)
+    if machines is None:
+        return
 
     print_results(machines, config)
 
@@ -611,7 +618,9 @@ def env_get_info(
     config = initializeApp(common)
 
     e = cs.cs_env_get(envid)
-    _filter_fields(e, field, availfields)
+    e = _filter_fields(e, field, availfields)
+    if e is None:
+        return
 
     print_results(e, config)
 
@@ -635,7 +644,9 @@ def blueprint_list(
     else:
         blueprints = cs.cs_blueprint_get_all()
 
-    _filter_fields(blueprints, field, availfields)
+    blueprints = _filter_fields(blueprints, field, availfields)
+    if blueprints is None:
+        return
 
     print_results(blueprints, config)
 
@@ -658,7 +669,9 @@ def policy_list(
     else:
         policies = cs.cs_policy_get_all()
 
-    _filter_fields(policies, field, availfields)
+    policies = _filter_fields(policies, field, availfields)
+    if policies is None:
+        return
 
     print_results(policies, config)
 
